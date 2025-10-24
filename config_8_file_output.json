@@ -1,0 +1,15 @@
+{
+  "name": "File Output (Testing)",
+  "description": "Output to file for testing purposes",
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "file",
+    "source": "/tmp/test_output.ts",
+    "params": ""
+  },
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O file /tmp/test_output.ts"
+}

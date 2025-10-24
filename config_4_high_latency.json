@@ -1,0 +1,15 @@
+{
+  "name": "High Latency Mode",
+  "description": "SRT connection with higher latency for better reliability",
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "srt",
+    "source": "srt://cdn.itassist.one:8888",
+    "params": "--caller cdn.itassist.one:8888 --latency 5000"
+  },
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O srt --caller cdn.itassist.one:8888 --latency 5000"
+}

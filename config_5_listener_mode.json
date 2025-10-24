@@ -1,0 +1,15 @@
+{
+  "name": "Listener Mode",
+  "description": "SRT connection in listener mode (server connects to you)",
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "srt",
+    "source": "srt://0.0.0.0:8888",
+    "params": "--listener 0.0.0.0:8888 --latency 2000"
+  },
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O srt --listener 0.0.0.0:8888 --latency 2000"
+}

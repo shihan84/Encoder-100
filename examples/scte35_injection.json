@@ -1,0 +1,46 @@
+{
+  "input": {
+    "type": "file",
+    "source": "/path/to/input.ts",
+    "params": ""
+  },
+  "output": {
+    "type": "file",
+    "source": "/path/to/output_with_splices.ts",
+    "params": ""
+  },
+  "tsp_options": {
+    "buffer_size": 1000000,
+    "realtime": false,
+    "monitor": true
+  },
+  "plugins": {
+    "spliceinject": {
+      "enabled": true,
+      "params": "--event-id 1 --immediate --out-of-network --unique-program-id 1 --avail-num 1 --avails-expected 1"
+    },
+    "splicemonitor": {
+      "enabled": true,
+      "params": "--json --xml"
+    },
+    "analyze": {
+      "enabled": true,
+      "params": "--pid 0x100"
+    }
+  },
+  "scte35": {
+    "monitoring": true,
+    "injection": true,
+    "events": [
+      {
+        "command_type": "splice_insert",
+        "event_id": 1,
+        "unique_program_id": 1,
+        "avail_num": 1,
+        "avails_expected": 1,
+        "out_of_network": true,
+        "immediate": true
+      }
+    ]
+  }
+}

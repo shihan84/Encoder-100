@@ -1,0 +1,39 @@
+{
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "srt",
+    "source": "srt://cdn.itassist.one:8888?streamid=#!::r=scte/scte,m=publish",
+    "params": "--latency 2000"
+  },
+  "scte35": {
+    "data_pid": 500,
+    "null_pid": 8191,
+    "event_id": 100023,
+    "ad_duration": 600,
+    "preroll_duration": 0
+  },
+  "stream_specs": {
+    "video": {
+      "resolution": "1920x1080",
+      "codec": "H.264",
+      "pcr": "Video Embedded",
+      "profile_level": "High@Auto",
+      "gop": 12,
+      "b_frames": 5,
+      "bitrate": "5 Mbps",
+      "chroma": "4:2:0",
+      "aspect_ratio": "16:9"
+    },
+    "audio": {
+      "codec": "AAC-LC",
+      "bitrate": "128 Kbps",
+      "lkfs": "-20 db",
+      "sampling_rate": "48Khz"
+    },
+    "latency": "2000 milliseconds"
+  }
+}

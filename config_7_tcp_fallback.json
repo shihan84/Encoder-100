@@ -1,0 +1,15 @@
+{
+  "name": "TCP Fallback",
+  "description": "TCP output as fallback if SRT doesn't work",
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "tcp",
+    "source": "tcp://cdn.itassist.one:8888",
+    "params": ""
+  },
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O tcp cdn.itassist.one:8888"
+}

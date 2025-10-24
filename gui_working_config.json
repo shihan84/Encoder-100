@@ -1,0 +1,66 @@
+{
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "srt",
+    "source": "srt://cdn.itassist.one:8888?streamid=#!::r=scte/scte,m=publish",
+    "params": "--streamid '#!::r=scte/scte,m=publish' --latency 2000"
+  },
+  "plugins": {
+    "pmt": {
+      "enabled": true,
+      "params": "--service 1 --add-pid 500/0x86"
+    },
+    "spliceinject": {
+      "enabled": true,
+      "params": "--service 1 --files 'scte35_final/*.xml' --inject-count 1 --inject-interval 1000 --start-delay 2000"
+    }
+  },
+  "scte35": {
+    "service_name": "SCTE-35 Stream",
+    "provider_name": "ITAssist",
+    "service_id": 1,
+    "vpid": 256,
+    "apid": 257,
+    "scte35_pid": 500,
+    "null_pid": 8191,
+    "pcr_pid": 256,
+    "pmt_enabled": true,
+    "pmt_params": "--service 1 --add-pid 500/0x86",
+    "spliceinject_enabled": true,
+    "spliceinject_params": "--service 1 --files 'scte35_final/*.xml' --inject-count 1 --inject-interval 1000 --start-delay 2000",
+    "event_id": 100023,
+    "ad_duration": 600,
+    "preroll_duration": 0,
+    "markers": {
+      "cue_out_10021": "Ad break start (600s duration)",
+      "cue_in_10022": "Return to program",
+      "preroll_10023": "Scheduled ad (600s duration)",
+      "crash_out_10024": "Emergency break (30s duration)"
+    }
+  },
+  "stream_specs": {
+    "video": {
+      "resolution": "1920x1080",
+      "codec": "H.264",
+      "pcr": "Video Embedded",
+      "profile_level": "High@Auto",
+      "gop": 12,
+      "b_frames": 5,
+      "bitrate": "5 Mbps",
+      "chroma": "4:2:0",
+      "aspect_ratio": "16:9"
+    },
+    "audio": {
+      "codec": "AAC-LC",
+      "bitrate": "128 Kbps",
+      "lkfs": "-20 db",
+      "sampling_rate": "48Khz"
+    },
+    "latency": "2000 milliseconds"
+  },
+  "working_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -P pmt --service 1 --add-pid 500/0x86 -P spliceinject --service 1 --files 'scte35_final/*.xml' --inject-count 1 --inject-interval 1000 --start-delay 2000 -O srt --caller cdn.itassist.one:8888 --streamid '#!::r=scte/scte,m=publish' --latency 2000"
+}

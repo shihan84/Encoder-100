@@ -1,0 +1,40 @@
+{
+  "input": {
+    "type": "udp",
+    "source": "239.1.1.1:1234",
+    "params": "--local-address 0.0.0.0 --local-port 1234"
+  },
+  "output": {
+    "type": "udp",
+    "source": "239.1.1.2:5678",
+    "params": "--remote-address 239.1.1.2 --remote-port 5678"
+  },
+  "tsp_options": {
+    "buffer_size": 2000000,
+    "realtime": true,
+    "monitor": true
+  },
+  "plugins": {
+    "analyze": {
+      "enabled": true,
+      "params": "--all-streams"
+    },
+    "bitrate_monitor": {
+      "enabled": true,
+      "params": "--window-size 1000 --alarm 20000000"
+    },
+    "regulate": {
+      "enabled": true,
+      "params": "--bitrate 15000000"
+    },
+    "stats": {
+      "enabled": true,
+      "params": "--interval 5000"
+    }
+  },
+  "scte35": {
+    "monitoring": true,
+    "injection": false,
+    "events": []
+  }
+}

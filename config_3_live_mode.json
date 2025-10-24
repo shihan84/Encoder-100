@@ -1,0 +1,15 @@
+{
+  "name": "Live Transmission Mode",
+  "description": "SRT connection optimized for live streaming",
+  "input": {
+    "type": "hls",
+    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "params": ""
+  },
+  "output": {
+    "type": "srt",
+    "source": "srt://cdn.itassist.one:8888",
+    "params": "--caller cdn.itassist.one:8888 --transtype live --latency 2000"
+  },
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O srt --caller cdn.itassist.one:8888 --transtype live --latency 2000"
+}

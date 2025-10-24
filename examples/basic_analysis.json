@@ -1,0 +1,36 @@
+{
+  "input": {
+    "type": "file",
+    "source": "/path/to/input.ts",
+    "params": ""
+  },
+  "output": {
+    "type": "file",
+    "source": "/path/to/output.ts",
+    "params": ""
+  },
+  "tsp_options": {
+    "buffer_size": 1000000,
+    "realtime": false,
+    "monitor": true
+  },
+  "plugins": {
+    "analyze": {
+      "enabled": true,
+      "params": "--pid 0x100 --service 1"
+    },
+    "stats": {
+      "enabled": true,
+      "params": "--interval 1000"
+    },
+    "continuity": {
+      "enabled": true,
+      "params": "--fix"
+    }
+  },
+  "scte35": {
+    "monitoring": false,
+    "injection": false,
+    "events": []
+  }
+}
