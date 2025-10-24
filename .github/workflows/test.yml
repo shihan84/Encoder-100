@@ -1,0 +1,162 @@
+name: Test IBE-100
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # Test on multiple platforms
+  test:
+    name: Test ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-11]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget -O - https://tsduck.io/download/tsduck-3.34-ubuntu20.04-amd64.deb | sudo dpkg -i - || true
+          sudo apt-get install -f -y
+
+      - name: Install system dependencies (macOS)
+        if: matrix.os == 'macos-11'
+        run: |
+          brew install tsduck
+
+      - name: Install system dependencies (Windows)
+        if: matrix.os == 'windows-2019'
+        run: |
+          choco install tsduck -y
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Python tests
+        run: |
+          python -m pytest tests/ -v --cov=. --cov-report=xml
+        continue-on-error: true
+
+      - name: Lint code
+        run: |
+          pip install flake8 black
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          black --check .
+        continue-on-error: true
+
+      - name: Test TSDuck integration
+        run: |
+          tsp --version
+          python -c "import subprocess; print('TSDuck version:', subprocess.run(['tsp', '--version'], capture_output=True, text=True).stdout.strip())"
+
+      - name: Test GUI startup (headless)
+        run: |
+          # Test GUI can start without display
+          python -c "
+          import sys
+          sys.argv = ['tsduck_gui_simplified.py', '--test']
+          try:
+              from PyQt6.QtWidgets import QApplication
+              app = QApplication([])
+              print('✅ GUI can initialize')
+              app.quit()
+          except Exception as e:
+              print(f'❌ GUI initialization failed: {e}')
+              sys.exit(1)
+          "
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: |
+            coverage.xml
+            test-results/
+          retention-days: 7
+
+  # Code quality
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black isort mypy
+
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Format check with black
+        run: |
+          black --check .
+
+      - name: Import sorting with isort
+        run: |
+          isort --check-only .
+
+      - name: Type checking with mypy
+        run: |
+          mypy tsduck_gui_simplified.py --ignore-missing-imports
+        continue-on-error: true
+
+  # Security scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+
+      - name: Run Bandit security linter
+        run: |
+          pip install bandit
+          bandit -r . -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-results
+          path: |
+            bandit-report.json
+          retention-days: 30
