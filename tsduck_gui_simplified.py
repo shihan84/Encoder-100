@@ -674,6 +674,10 @@ class ConfigurationWidget(QWidget):
         self.scte35_widget = SCTE35Widget()
         self.config_tabs.addTab(self.scte35_widget, "🎬 SCTE-35")
         
+        # TSDuck Configuration
+        self.tsduck_widget = TSDuckConfigWidget()
+        self.config_tabs.addTab(self.tsduck_widget, "🔧 TSDuck")
+        
         content_layout.addWidget(self.config_tabs)
         content_layout.addStretch()
         
@@ -687,7 +691,175 @@ class ConfigurationWidget(QWidget):
             "input": self.input_widget.get_config(),
             "output": self.output_widget.get_config(),
             "service": self.service_widget.get_config(),
-            "scte35": self.scte35_widget.get_config()
+            "scte35": self.scte35_widget.get_config(),
+            "tsduck": self.tsduck_widget.get_config()
+        }
+
+
+class TSDuckConfigWidget(QWidget):
+    """TSDuck Configuration Widget"""
+    
+    def __init__(self):
+        super().__init__()
+        self.setup_ui()
+        
+    def setup_ui(self):
+        """Setup TSDuck configuration interface"""
+        main_layout = QVBoxLayout()
+        
+        # TSDuck Path Configuration
+        tsduck_group = QGroupBox("🔧 TSDuck Binary Configuration")
+        tsduck_layout = QGridLayout()
+        
+        # TSDuck Binary Path
+        tsduck_layout.addWidget(QLabel("TSDuck Binary Path:"), 0, 0)
+        self.tsduck_path = QLineEdit()
+        self.tsduck_path.setPlaceholderText("Enter full path to TSDuck binary (tsp)")
+        self.tsduck_path.setStyleSheet("font-size: 13px; padding: 10px;")
+        tsduck_layout.addWidget(self.tsduck_path, 0, 1)
+        
+        # Browse button
+        browse_btn = QPushButton("📁 Browse")
+        browse_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; font-size: 12px; }")
+        browse_btn.clicked.connect(self.browse_tsduck_path)
+        tsduck_layout.addWidget(browse_btn, 0, 2)
+        
+        # Auto-detect button
+        detect_btn = QPushButton("🔍 Auto-detect")
+        detect_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; font-size: 12px; }")
+        detect_btn.clicked.connect(self.auto_detect_tsduck)
+        tsduck_layout.addWidget(detect_btn, 0, 3)
+        
+        # Test button
+        test_btn = QPushButton("✅ Test")
+        test_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; padding: 8px; font-size: 12px; }")
+        test_btn.clicked.connect(self.test_tsduck_path)
+        tsduck_layout.addWidget(test_btn, 0, 4)
+        
+        tsduck_group.setLayout(tsduck_layout)
+        main_layout.addWidget(tsduck_group)
+        
+        # Platform-specific paths
+        platform_group = QGroupBox("💻 Platform-specific Default Paths")
+        platform_layout = QVBoxLayout()
+        
+        platform_info = QLabel("""
+        <b>Common TSDuck Installation Paths:</b><br>
+        <b>macOS:</b> /usr/local/bin/tsp (Homebrew)<br>
+        <b>Linux:</b> /usr/bin/tsp or /usr/local/bin/tsp<br>
+        <b>Windows:</b> C:\\Program Files\\TSDuck\\bin\\tsp.exe<br>
+        <b>Custom:</b> Enter your specific installation path
+        """)
+        platform_info.setStyleSheet("font-size: 12px; color: #888; padding: 10px; background-color: #1a1a1a; border-radius: 5px;")
+        platform_info.setWordWrap(True)
+        platform_layout.addWidget(platform_info)
+        
+        platform_group.setLayout(platform_layout)
+        main_layout.addWidget(platform_group)
+        
+        # Status display
+        status_group = QGroupBox("📊 TSDuck Status")
+        status_layout = QVBoxLayout()
+        
+        self.status_label = QLabel("Status: Not tested")
+        self.status_label.setStyleSheet("font-size: 14px; color: #888;")
+        status_layout.addWidget(self.status_label)
+        
+        self.version_label = QLabel("Version: Unknown")
+        self.version_label.setStyleSheet("font-size: 12px; color: #666;")
+        status_layout.addWidget(self.version_label)
+        
+        status_group.setLayout(status_layout)
+        main_layout.addWidget(status_group)
+        
+        main_layout.addStretch()
+        self.setLayout(main_layout)
+        
+        # Auto-detect on startup
+        self.auto_detect_tsduck()
+    
+    def browse_tsduck_path(self):
+        """Browse for TSDuck binary"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Select TSDuck Binary (tsp)", 
+            "", 
+            "Executable files (*.exe);;All files (*)"
+        )
+        if file_path:
+            self.tsduck_path.setText(file_path)
+            self.test_tsduck_path()
+    
+    def auto_detect_tsduck(self):
+        """Auto-detect TSDuck binary path"""
+        import shutil
+        import platform
+        
+        # Try common paths
+        common_paths = []
+        
+        if platform.system() == "Windows":
+            common_paths = [
+                "C:\\Program Files\\TSDuck\\bin\\tsp.exe",
+                "C:\\Program Files (x86)\\TSDuck\\bin\\tsp.exe",
+                "C:\\tsduck\\bin\\tsp.exe"
+            ]
+        else:
+            common_paths = [
+                "/usr/local/bin/tsp",
+                "/usr/bin/tsp",
+                "/opt/tsduck/bin/tsp",
+                "/usr/local/tsduck/bin/tsp"
+            ]
+        
+        # Try shutil.which first
+        tsp_path = shutil.which("tsp")
+        if tsp_path:
+            self.tsduck_path.setText(tsp_path)
+            self.test_tsduck_path()
+            return
+        
+        # Try common paths
+        for path in common_paths:
+            if os.path.exists(path):
+                self.tsduck_path.setText(path)
+                self.test_tsduck_path()
+                return
+        
+        # If not found, show message
+        self.status_label.setText("Status: TSDuck not found - please set path manually")
+        self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
+    
+    def test_tsduck_path(self):
+        """Test TSDuck binary path"""
+        tsp_path = self.tsduck_path.text().strip()
+        if not tsp_path:
+            self.status_label.setText("Status: No path specified")
+            self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
+            return
+        
+        try:
+            import subprocess
+            result = subprocess.run([tsp_path, "--version"], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                version_info = result.stdout.strip()
+                self.status_label.setText("Status: ✅ TSDuck found and working")
+                self.status_label.setStyleSheet("font-size: 14px; color: #4CAF50;")
+                self.version_label.setText(f"Version: {version_info}")
+            else:
+                self.status_label.setText("Status: ❌ TSDuck not working")
+                self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
+                self.version_label.setText("Version: Error")
+        except Exception as e:
+            self.status_label.setText(f"Status: ❌ Error: {str(e)}")
+            self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
+            self.version_label.setText("Version: Error")
+    
+    def get_config(self):
+        """Get TSDuck configuration"""
+        return {
+            "tsduck_path": self.tsduck_path.text().strip() or "tsp"
         }
 
 
@@ -964,10 +1136,27 @@ class AnalyticsWidget(QWidget):
             # Build TSDuck real-time analysis command
             tsp_binary = "/usr/local/bin/tsp"
             
-            # Real-time analysis command
+            # Get input configuration from the main window
+            try:
+                # Try to get the current input configuration
+                main_window = self.parent().parent().parent()  # Navigate to MainWindow
+                if hasattr(main_window, 'config_widget'):
+                    input_config = main_window.config_widget.input_widget.get_config()
+                    input_type = input_config.get('type', 'hls').lower()
+                    input_source = input_config.get('source', 'https://cdn.itassist.one/BREAKING/NEWS/index.m3u8')
+                else:
+                    # Fallback to default
+                    input_type = 'hls'
+                    input_source = 'https://cdn.itassist.one/BREAKING/NEWS/index.m3u8'
+            except:
+                # Fallback to default
+                input_type = 'hls'
+                input_source = 'https://cdn.itassist.one/BREAKING/NEWS/index.m3u8'
+            
+            # Real-time analysis command with dynamic input
             command = [
                 tsp_binary,
-                "-I", "hls", "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+                "-I", input_type, input_source,
                 # Bitrate monitoring
                 "-P", "bitrate_monitor", "--interval", "2", "--min", "1000000", "--max", "10000000",
                 # Continuity checking
@@ -3174,22 +3363,103 @@ class MainWindow(QMainWindow):
     
     def build_command(self) -> List[str]:
         """Build TSDuck command from configuration with manual VPID/APID"""
-        # Find TSDuck binary automatically
-        tsp_binary = self.find_tsp_binary()
+        # Get configuration from the new enterprise structure
+        all_config = self.config_widget.get_all_config()
+        input_config = all_config["input"]
+        output_config = all_config["output"]
+        service_config = all_config["service"]
+        scte35_config = all_config["scte35"]
+        tsduck_config = all_config["tsduck"]
+        
+        # Use configured TSDuck path or fallback to auto-detection
+        tsp_binary = tsduck_config.get("tsduck_path", "tsp")
+        if not tsp_binary or tsp_binary == "tsp":
+            tsp_binary = self.find_tsp_binary()
         
         # Debug: Show which TSDuck binary is being used
         print(f"🔍 Using TSDuck binary: {tsp_binary}")
         
-        # Get configuration from the new enterprise structure
-        all_config = self.config_widget.get_all_config()
-        service_config = all_config["service"]
-        scte35_config = all_config["scte35"]
+        # Get input configuration
+        input_type = input_config["type"].lower()
+        input_source = input_config["source"]
+        input_params = input_config.get("params", "")
+        
+        # Fix input format according to TSDuck documentation for all input types
+        if input_type == "srt":
+            # TSDuck SRT input: extract host:port and handle streamid separately
+            if "://" in input_source:
+                # Extract host:port from srt://host:port?streamid=...
+                srt_url = input_source.replace("srt://", "")
+                if "?" in srt_url:
+                    # Split into host:port and streamid
+                    host_port = srt_url.split("?")[0]
+                    streamid_part = srt_url.split("?")[1]
+                    if "streamid=" in streamid_part:
+                        streamid_value = streamid_part.split("streamid=")[1]
+                        # Store streamid for later use
+                        input_source = host_port
+                        # Add streamid as a parameter
+                        if not input_params:
+                            input_params = f"--streamid {streamid_value}"
+                        else:
+                            input_params += f" --streamid {streamid_value}"
+                    else:
+                        input_source = host_port
+                else:
+                    input_source = srt_url
+            else:
+                # Already in host:port format
+                input_source = input_source
+        elif input_type == "udp":
+            # TSDuck UDP input: host:port format
+            if "://" in input_source:
+                clean_url = input_source.replace("udp://", "")
+                input_source = clean_url
+        elif input_type == "tcp":
+            # TSDuck TCP input: host:port format
+            if "://" in input_source:
+                clean_url = input_source.replace("tcp://", "")
+                input_source = clean_url
+        elif input_type == "hls":
+            # TSDuck HLS input: full URL format
+            # Keep the full URL as is for HLS
+            pass
+        elif input_type == "http" or input_type == "https":
+            # TSDuck HTTP input: full URL format
+            # Keep the full URL as is
+            pass
+        elif input_type == "file":
+            # TSDuck File input: file path
+            # Keep the file path as is
+            pass
+        elif input_type in ["dvb", "asi", "dektec"]:
+            # TSDuck hardware input: device path or parameters
+            # Keep as is for hardware inputs
+            pass
         
         # Build command with proper service and PID configuration
         # Using official TSDuck documentation patterns
         command = [
             tsp_binary,
-            "-I", "hls", "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+            "-I", input_type, input_source,
+        ]
+        
+        # Add input parameters if specified
+        if input_params:
+            command.extend(input_params.split())
+        
+        # Add SRT-specific parameters for input
+        if input_type == "srt":
+            # Add SRT input parameters based on TSDuck documentation
+            srt_params = [
+                "--transtype", "live",  # Set transmission type to live
+                "--messageapi",         # Enable message API for SRT
+                "--latency", "2000"     # Set latency to 2000ms
+            ]
+            command.extend(srt_params)
+        
+        # Add processing plugins
+        command.extend([
             # Set service name and provider using SDT plugin (TSDuck standard)
             "-P", "sdt", "--service", str(service_config["service_id"]), 
             "--name", service_config["service_name"], "--provider", service_config["provider_name"],
@@ -3206,11 +3476,35 @@ class MainWindow(QMainWindow):
             "-P", "spliceinject", "--service", str(service_config["service_id"]), 
             "--files", "scte35_final/*.xml",
             "--inject-count", "1", "--inject-interval", "1000", "--start-delay", "2000",
-            # Output to SRT
-            "-O", "srt", "--caller", "cdn.itassist.one:8888",
-            "--streamid", "#!::r=scte/scte,m=publish", "--latency", "2000"
-        ]
+            # Output configuration
+            "-O", output_config["type"].lower(),
+            *self.get_output_params(output_config)
+        ])
         return command
+    
+    def get_output_params(self, output_config):
+        """Get output parameters based on output type"""
+        output_type = output_config["type"].lower()
+        destination = output_config.get("destination", "")
+        params = output_config.get("params", "")
+        
+        if output_type == "srt":
+            return [
+                "--caller", destination,
+                "--streamid", "#!::r=scte/scte,m=publish",
+                "--latency", "2000"
+            ]
+        elif output_type == "udp":
+            return ["--local", destination]
+        elif output_type == "tcp":
+            return ["--local", destination]
+        elif output_type == "file":
+            return [destination]
+        else:
+            # Default parameters
+            if destination:
+                return [destination]
+            return []
     
     def start_processing(self):
         """Start IBE-100 processing"""
@@ -3224,12 +3518,44 @@ class MainWindow(QMainWindow):
             # Get console widget from monitoring tab
             console_widget = self.monitoring_widget.console_widget
             
+            # Get input and output configuration for display
+            input_config = all_config["input"]
+            output_config = all_config["output"]
+            
+            # Get the processed input format from build_command
+            processed_input_type = input_config["type"].lower()
+            processed_input_source = input_config["source"]
+            
+            # Apply the same input format processing as in build_command
+            if processed_input_type == "srt":
+                # For SRT, keep the full URL with streamid
+                if "://" in processed_input_source:
+                    processed_input_source = processed_input_source  # Keep full SRT URL
+                else:
+                    processed_input_source = processed_input_source
+            elif processed_input_type == "udp":
+                if "://" in processed_input_source:
+                    clean_url = processed_input_source.replace("udp://", "")
+                    processed_input_source = clean_url
+            elif processed_input_type == "tcp":
+                if "://" in processed_input_source:
+                    clean_url = processed_input_source.replace("tcp://", "")
+                    processed_input_source = clean_url
+            
             console_widget.append_output(f"🚀 Starting IBE-100 processing...")
             console_widget.append_output(f"🔍 TSDuck Binary: {command[0]}")
+            console_widget.append_output(f"📥 Input Configuration:")
+            console_widget.append_output(f"   Type: {input_config['type'].upper()}")
+            console_widget.append_output(f"   Source: {input_config['source']}")
+            if input_config.get('params'):
+                console_widget.append_output(f"   Parameters: {input_config['params']}")
+            console_widget.append_output(f"   TSDuck Format: {processed_input_type} {processed_input_source}")
+            console_widget.append_output(f"📤 Output Configuration:")
+            console_widget.append_output(f"   Type: {output_config['type'].upper()}")
+            console_widget.append_output(f"   Destination: {output_config.get('destination', 'N/A')}")
             console_widget.append_output(f"📺 DISTRIBUTOR STREAM SPECIFICATIONS:")
             console_widget.append_output(f"   📺 Video: 1920x1080 HD, H.264, 5 Mbps, GOP:12, B-Frames:5")
             console_widget.append_output(f"   🎵 Audio: AAC-LC, 128 Kbps, -20 db, 48 Khz")
-            console_widget.append_output(f"   📡 SRT Output: cdn.itassist.one:8888 - Latency: 2000ms")
             console_widget.append_output(f"📋 Service Configuration:")
             console_widget.append_output(f"   Service: {service_config['service_name']} (ID: {service_config['service_id']})")
             console_widget.append_output(f"   Provider: {service_config['provider_name']}")

@@ -1,15 +1,15 @@
 {
   "input": {
-    "type": "hls",
-    "source": "https://cdn.itassist.one/BREAKING/NEWS/index.m3u8",
+    "type": "srt",
+    "source": "srt://cdn.itassist.one:8888?streamid=#!::r=meemtv/meemtv,m=request",
     "params": ""
   },
   "output": {
     "type": "srt",
-    "destination": "srt://cdn.itassist.one:8888",
+    "destination": "cdn.itassist.one:8888",
     "params": "--streamid '#!::r=scte/scte,m=publish' --latency 2000"
   },
-  "scte35": {
+  "service": {
     "service_name": "SCTE-35 Stream",
     "provider_name": "ITAssist",
     "service_id": 1,
@@ -17,7 +17,23 @@
     "apid": 257,
     "scte35_pid": 500,
     "null_pid": 8191,
+    "pcr_pid": 256
+  },
+  "scte35": {
+    "service_name": "SCTE-35 Stream",
+    "provider_name": "ITAssist",
+    "service_id": 1,
+    "bouquet_id": 1,
+    "original_network_id": 1,
+    "transport_stream_id": 1,
+    "vpid": 256,
+    "apid": 257,
+    "scte35_pid": 500,
+    "null_pid": 8191,
     "pcr_pid": 256,
+    "ad_duration": 600,
+    "event_id": 100023,
+    "preroll_duration": 0,
     "pmt_enabled": true,
     "pmt_params": "--service 1 --add-pid 500/0x86",
     "spliceinject_enabled": true,
