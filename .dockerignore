@@ -1,0 +1,86 @@
+# ITAssist Broadcast Encoder - 100 (IBE-100)
+# Docker ignore file for optimized builds
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Build artifacts
+build/
+dist/
+*.spec
+*.exe
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation (keep essential)
+!README.md
+!LICENSE.txt
+
+# Assets (keep essential)
+!assets/icon.png
+!assets/icon.ico
+!assets/icon.icns
+
+# SCTE-35 files (keep)
+!scte35_final/
+
+# Configuration (keep)
+!requirements.txt
+!build_config.py

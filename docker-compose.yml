@@ -1,0 +1,116 @@
+# ITAssist Broadcast Encoder - 100 (IBE-100)
+# Docker Compose Configuration for Professional Deployment
+# Multi-service orchestration for SCTE-35 streaming
+
+version: '3.8'
+
+services:
+  # Main IBE-100 Application
+  ibe100:
+    build: .
+    container_name: ibe100-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # Web interface (if implemented)
+      - "8888:8888"  # SRT streaming port
+    volumes:
+      - ./scte35_final:/app/scte35_final:ro
+      - ./config:/app/config:rw
+      - ./logs:/app/logs:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TSDUCK_PATH=/usr/bin/tsp
+      - LOG_LEVEL=INFO
+    networks:
+      - ibe100-network
+    depends_on:
+      - redis
+      - monitoring
+    healthcheck:
+      test: ["CMD", "tsp", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: ibe100-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ibe100-network
+    command: redis-server --appendonly yes
+
+  # Monitoring and Analytics
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: ibe100-monitoring
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - ibe100-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ibe100-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - ibe100-network
+    depends_on:
+      - monitoring
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: ibe100-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - ibe100-network
+    depends_on:
+      - ibe100
+
+# Networks
+networks:
+  ibe100-network:
+    driver: bridge
+    name: ibe100-network
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

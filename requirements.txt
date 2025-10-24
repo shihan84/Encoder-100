@@ -1,9 +1,23 @@
-PyQt6==6.6.1
-PyQt6-Qt6==6.6.1
-PyQt6-sip==13.6.0
-numpy==1.24.3
-matplotlib==3.7.2
-psutil==5.9.5
-requests==2.31.0
-pyqtgraph==0.13.3
-qdarkstyle==3.2.3
+# ITAssist Broadcast Encoder - 100 (IBE-100)
+# Professional SCTE-35 Streaming Application
+# Requirements for packaging and deployment
+
+# Core GUI Framework
+PyQt6>=6.0.0
+
+# System Monitoring
+psutil>=5.8.0
+
+# Packaging Dependencies
+pyinstaller>=5.0.0
+cx-freeze>=6.0.0
+
+# Optional: Web GUI (Future Implementation)
+# flask>=2.0.0
+# fastapi>=0.68.0
+# uvicorn>=0.15.0
+
+# Development Dependencies (Optional)
+# pytest>=6.0.0
+# black>=21.0.0
+# flake8>=3.9.0

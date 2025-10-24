@@ -1,0 +1,56 @@
+ITAssist Broadcast Encoder - 100 (IBE-100)
+Professional SCTE-35 Streaming Application
+
+Copyright (c) 2024 ITAssist Broadcast Solutions
+All rights reserved.
+
+PROPRIETARY SOFTWARE LICENSE AGREEMENT
+
+This software and associated documentation files (the "Software") are proprietary 
+to ITAssist Broadcast Solutions ("Company") and are protected by copyright laws 
+and international copyright treaties, as well as other intellectual property 
+laws and treaties.
+
+LICENSE GRANT
+
+Subject to the terms and conditions of this Agreement, Company hereby grants you 
+a limited, non-exclusive, non-transferable license to use the Software solely for 
+professional broadcast and streaming applications.
+
+RESTRICTIONS
+
+You may NOT:
+- Distribute, sublicense, or transfer the Software to any third party
+- Reverse engineer, decompile, or disassemble the Software
+- Remove or alter any proprietary notices or labels on the Software
+- Use the Software for any purpose other than professional broadcast applications
+- Create derivative works based on the Software
+
+TERMINATION
+
+This license is effective until terminated. Company may terminate this license 
+immediately if you fail to comply with any term of this Agreement. Upon termination, 
+you must destroy all copies of the Software.
+
+DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL COMPANY BE LIABLE FOR 
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
+OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+THIRD-PARTY COMPONENTS
+
+This Software includes third-party components:
+- TSDuck: BSD License
+- PyQt6: GPL/Commercial License  
+- Python: PSF License
+- Docker: Apache License
+
+Contact Information:
+ITAssist Broadcast Solutions
+Dubai • Mumbai • Gurugram
+Email: support@itassist.one
+Website: https://itassist.one
