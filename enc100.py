@@ -3489,46 +3489,41 @@ class MainWindow(QMainWindow):
         params = output_config.get("params", "")
         
         if output_type == "srt":
-            # Parse SRT URL and parameters dynamically
+            # SRT parameters are strictly user-defined - no automatic defaults
             srt_params = []
             
-            # Parse destination for host:port
+            # Only parse destination if it's provided and contains URL info
             if destination:
                 if '://' in destination:
-                    # Handle srt://host:port format
+                    # Handle srt://host:port format - extract host:port only
                     url_part = destination.split('://', 1)[1]
                     if '?' in url_part:
                         host_port, query = url_part.split('?', 1)
-                        srt_params.extend(["--caller", host_port])
+                        # Only add --caller if user hasn't specified it in params
+                        if not params or '--caller' not in params:
+                            srt_params.extend(["--caller", host_port])
                         
-                        # Parse query parameters
+                        # Parse query parameters only if user hasn't specified them
                         for param in query.split('&'):
                             if '=' in param:
                                 key, value = param.split('=', 1)
-                                if key == 'streamid':
+                                if key == 'streamid' and (not params or '--streamid' not in params):
                                     srt_params.extend(["--streamid", value])
                     else:
-                        srt_params.extend(["--caller", url_part])
+                        # Only add --caller if user hasn't specified it in params
+                        if not params or '--caller' not in params:
+                            srt_params.extend(["--caller", url_part])
                 else:
-                    # Direct host:port format
-                    srt_params.extend(["--caller", destination])
+                    # Direct host:port format - only add if user hasn't specified --caller
+                    if not params or '--caller' not in params:
+                        srt_params.extend(["--caller", destination])
             
-            # Add custom parameters from params field
+            # Add ONLY user-defined parameters from params field
             if params:
                 param_list = params.split()
-                # Filter out duplicate --caller parameters
-                filtered_params = []
-                for param in param_list:
-                    if param == "--caller" and "--caller" in srt_params:
-                        # Skip duplicate --caller and its value
-                        continue
-                    elif param != "--caller" or "--caller" not in srt_params:
-                        filtered_params.append(param)
-                srt_params.extend(filtered_params)
-            else:
-                # Default parameters if none specified
-                srt_params.extend(["--latency", "2000"])
+                srt_params.extend(param_list)
             
+            # Return only user-defined parameters - no defaults
             return srt_params
         elif output_type == "udp":
             return ["--local", destination]

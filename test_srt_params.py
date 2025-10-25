@@ -29,38 +29,46 @@ def test_srt_parameter_parsing():
         print(f"❌ Error importing application: {e}")
         return False
     
-    # Test configurations
+    # Test configurations for strictly user-defined parameters
     test_configs = [
         {
-            "name": "Basic SRT with URL",
+            "name": "User-defined parameters only",
             "config": {
                 "type": "srt",
                 "destination": "srt://cdn.itassist.one:8888",
-                "params": "--latency 2000"
+                "params": "--caller cdn.itassist.one:8888 --streamid 'user-stream' --latency 5000 --transtype live"
             }
         },
         {
-            "name": "SRT with Stream ID in URL",
+            "name": "URL with user parameters override",
             "config": {
                 "type": "srt", 
                 "destination": "srt://cdn.itassist.one:8888?streamid=#!::r=scte/scte,m=publish",
-                "params": "--latency 4000"
+                "params": "--caller custom-server.com:9999 --streamid 'override-stream' --latency 3000"
             }
         },
         {
-            "name": "SRT with custom parameters",
+            "name": "Strictly user-defined (no URL parsing)",
             "config": {
                 "type": "srt",
                 "destination": "cdn.itassist.one:8888",
-                "params": "--caller cdn.itassist.one:8888 --streamid 'test-stream' --latency 3000 --transtype live"
+                "params": "--caller cdn.itassist.one:8888 --streamid 'strict-user' --latency 2000 --messageapi"
             }
         },
         {
-            "name": "SRT with no custom params (defaults)",
+            "name": "No user parameters (should be empty)",
             "config": {
                 "type": "srt",
                 "destination": "srt://cdn.itassist.one:8888",
                 "params": ""
+            }
+        },
+        {
+            "name": "Minimal user parameters",
+            "config": {
+                "type": "srt",
+                "destination": "",
+                "params": "--caller minimal-server.com:7777"
             }
         }
     ]
