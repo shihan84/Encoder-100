@@ -35,11 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['assets/icon.png'],
-)
-app = BUNDLE(
-    exe,
-    name='IBE-100.app',
-    icon='assets/icon.png',
-    bundle_identifier=None,
+        # icon=['assets\\icon.ico'],  # Commented out due to icon error
 )

@@ -1,0 +1,12 @@
+{
+  "scte35_marker": {
+    "type": "Pre-roll",
+    "event_id": 10026,
+    "preroll_seconds": 0,
+    "ad_duration_seconds": 600,
+    "pts_time": 158525040885465,
+    "ad_duration_pts": 54000000,
+    "timestamp": "2025-10-25T16:19:03.171850",
+    "description": "Pre-roll marker with 0s lead time and 600s ad duration"
+  }
+}

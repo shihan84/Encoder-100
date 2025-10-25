@@ -12,7 +12,7 @@ from pathlib import Path
 
 # Application Information
 APP_NAME = "IBE-100"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.2.0"
 APP_DESCRIPTION = "ITAssist Broadcast Encoder - 100 (IBE-100)"
 APP_AUTHOR = "ITAssist Broadcast Solutions"
 APP_COMPANY = "ITAssist Broadcast Solutions"

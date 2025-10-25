@@ -129,7 +129,7 @@ call :print_info "Building %APP_NAME% application..."
 
 if "%BUILD_TYPE%"=="onefile" (
     call :print_info "Creating single executable file..."
-    pyinstaller --onefile --windowed ^
+    python -m PyInstaller --onefile --windowed ^
         --name "%APP_NAME%" ^
         --icon "assets\icon.ico" ^
         --add-data "scte35_final;scte35_final" ^
@@ -149,7 +149,7 @@ if "%BUILD_TYPE%"=="onefile" (
     
 ) else if "%BUILD_TYPE%"=="onedir" (
     call :print_info "Creating directory distribution..."
-    pyinstaller --onedir --windowed ^
+    python -m PyInstaller --onedir --windowed ^
         --name "%APP_NAME%" ^
         --icon "assets\icon.ico" ^
         --add-data "scte35_final;scte35_final" ^
@@ -169,7 +169,7 @@ if "%BUILD_TYPE%"=="onefile" (
     
 ) else if "%BUILD_TYPE%"=="spec" (
     call :print_info "Building using spec file..."
-    pyinstaller specs\IBE-100.spec
+    python -m PyInstaller specs\IBE-100.spec
     call :print_status "Spec-based build completed"
     
 ) else (

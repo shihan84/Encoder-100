@@ -332,7 +332,7 @@ class SCTE35Widget(QWidget):
         service_layout.addWidget(specs_group)
         
         # Service Information Section - Consistent with Plugin Tab
-        service_group = QGroupBox("📋 Service Information")
+        service_group = QGroupBox("Service Information")
         service_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; margin: 10px; }")
         service_layout_inner = QVBoxLayout()
         
@@ -416,7 +416,7 @@ class SCTE35Widget(QWidget):
         service_layout.addWidget(service_group)
         
         # PID Configuration Section - Consistent with Plugin Tab
-        pid_group = QGroupBox("🔧 PID Configuration")
+        pid_group = QGroupBox("[TOOL] PID Configuration")
         pid_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; margin: 10px; }")
         pid_layout = QVBoxLayout()
         
@@ -557,7 +557,7 @@ class SCTE35Widget(QWidget):
         
         service_tab_layout = QVBoxLayout(service_tab)
         service_tab_layout.addWidget(scroll_area)
-        self.sub_tabs.addTab(service_tab, "📋 Service & PIDs")
+        self.sub_tabs.addTab(service_tab, "[INFO] Service & PIDs")
         
         # Plugins Tab
         plugins_tab = QWidget()
@@ -605,7 +605,7 @@ class SCTE35Widget(QWidget):
         
         plugins_layout.addStretch()
         plugins_tab.setLayout(plugins_layout)
-        self.sub_tabs.addTab(plugins_tab, "🔧 Plugins")
+        self.sub_tabs.addTab(plugins_tab, "[TOOL] Plugins")
         
         # Markers Tab
         markers_tab = QWidget()
@@ -714,7 +714,7 @@ class ConfigurationWidget(QWidget):
         
         # TSDuck Configuration
         self.tsduck_widget = TSDuckConfigWidget()
-        self.config_tabs.addTab(self.tsduck_widget, "🔧 TSDuck")
+        self.config_tabs.addTab(self.tsduck_widget, "[TOOL] TSDuck")
         
         content_layout.addWidget(self.config_tabs)
         content_layout.addStretch()
@@ -746,7 +746,7 @@ class TSDuckConfigWidget(QWidget):
         main_layout = QVBoxLayout()
         
         # TSDuck Path Configuration
-        tsduck_group = QGroupBox("🔧 TSDuck Binary Configuration")
+        tsduck_group = QGroupBox("[TOOL] TSDuck Binary Configuration")
         tsduck_layout = QGridLayout()
         
         # TSDuck Binary Path
@@ -757,7 +757,7 @@ class TSDuckConfigWidget(QWidget):
         tsduck_layout.addWidget(self.tsduck_path, 0, 1)
         
         # Browse button
-        browse_btn = QPushButton("📁 Browse")
+        browse_btn = QPushButton("[FOLDER] Browse")
         browse_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; font-size: 12px; }")
         browse_btn.clicked.connect(self.browse_tsduck_path)
         tsduck_layout.addWidget(browse_btn, 0, 2)
@@ -769,7 +769,7 @@ class TSDuckConfigWidget(QWidget):
         tsduck_layout.addWidget(detect_btn, 0, 3)
         
         # Test button
-        test_btn = QPushButton("✅ Test")
+        test_btn = QPushButton("[OK] Test")
         test_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; padding: 8px; font-size: 12px; }")
         test_btn.clicked.connect(self.test_tsduck_path)
         tsduck_layout.addWidget(test_btn, 0, 4)
@@ -882,15 +882,15 @@ class TSDuckConfigWidget(QWidget):
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 version_info = result.stdout.strip()
-                self.status_label.setText("Status: ✅ TSDuck found and working")
+                self.status_label.setText("Status: [OK] TSDuck found and working")
                 self.status_label.setStyleSheet("font-size: 14px; color: #4CAF50;")
                 self.version_label.setText(f"Version: {version_info}")
             else:
-                self.status_label.setText("Status: ❌ TSDuck not working")
+                self.status_label.setText("Status: [ERROR] TSDuck not working")
                 self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
                 self.version_label.setText("Version: Error")
         except Exception as e:
-            self.status_label.setText(f"Status: ❌ Error: {str(e)}")
+            self.status_label.setText(f"Status: [ERROR] Error: {str(e)}")
             self.status_label.setStyleSheet("font-size: 14px; color: #f44336;")
             self.version_label.setText("Version: Error")
     
@@ -942,7 +942,7 @@ class ServiceConfigWidget(QWidget):
         main_layout.addWidget(service_group)
         
         # PID Configuration Group
-        pid_group = QGroupBox("🔧 PID Configuration")
+        pid_group = QGroupBox("[TOOL] PID Configuration")
         pid_layout = QGridLayout()
         
         # Video PID
@@ -1228,7 +1228,7 @@ class AnalyticsWidget(QWidget):
             self.scte_status.setStyleSheet("font-size: 14px; color: #4CAF50;")
             
         except Exception as e:
-            self.scte_status.setText(f"❌ Error starting analysis: {e}")
+            self.scte_status.setText(f"[ERROR] Error starting analysis: {e}")
             self.scte_status.setStyleSheet("font-size: 14px; color: #f44336;")
     
     def update_realtime_metrics(self, data):
@@ -1579,7 +1579,7 @@ class PerformanceWidget(QWidget):
     def start_performance_monitoring(self):
         """Start real-time performance monitoring"""
         self.timer.start(1000)  # Update every second by default
-        self.performance_text.append("🚀 Real-time performance monitoring started automatically...")
+        self.performance_text.append("[LAUNCH] Real-time performance monitoring started automatically...")
         self.performance_text.append("📊 Monitoring CPU, Memory, Network, and TSDuck processes...")
     
     def update_refresh_rate(self, rate_text):
@@ -1626,16 +1626,16 @@ class PerformanceWidget(QWidget):
             # Stream Health Assessment with more detailed criteria
             if tsp_processes > 0:
                 if cpu_percent < 30 and memory.percent < 70:
-                    self.stream_health_label.setText("✅ Excellent")
+                    self.stream_health_label.setText("[OK] Excellent")
                     self.stream_health_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4CAF50;")
                 elif cpu_percent < 50 and memory.percent < 80:
-                    self.stream_health_label.setText("✅ Healthy")
+                    self.stream_health_label.setText("[OK] Healthy")
                     self.stream_health_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4CAF50;")
                 elif cpu_percent < 70 and memory.percent < 90:
-                    self.stream_health_label.setText("⚠️ Warning")
+                    self.stream_health_label.setText("[WARNING] Warning")
                     self.stream_health_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #FF9800;")
                 else:
-                    self.stream_health_label.setText("❌ Critical")
+                    self.stream_health_label.setText("[ERROR] Critical")
                     self.stream_health_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #f44336;")
             else:
                 self.stream_health_label.setText("⏹️ No Stream")
@@ -1653,11 +1653,11 @@ class PerformanceWidget(QWidget):
                 cursor.removeSelectedText()
             
         except ImportError:
-            self.performance_text.append("⚠️ psutil not available. Install with: pip install psutil")
+            self.performance_text.append("[WARNING] psutil not available. Install with: pip install psutil")
             # Fallback to simulated data
             self.update_simulated_performance()
         except Exception as e:
-            self.performance_text.append(f"❌ Error updating performance: {e}")
+            self.performance_text.append(f"[ERROR] Error updating performance: {e}")
             self.update_simulated_performance()
     
     def update_simulated_performance(self):
@@ -1721,7 +1721,7 @@ class PerformanceWidget(QWidget):
             self.tsduck_processes_label.setText(str(tsp_processes))
             
             if tsp_processes > 0:
-                self.stream_health_label.setText("✅ Real System Data")
+                self.stream_health_label.setText("[OK] Real System Data")
                 self.stream_health_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4CAF50;")
             else:
                 self.stream_health_label.setText("⏹️ No Stream")
@@ -1731,7 +1731,7 @@ class PerformanceWidget(QWidget):
             self.performance_text.append(f"[{timestamp}] CPU: {cpu_percent:.1f}% | Memory: {memory_mb} MB | Network: {network_mbps:.1f} MB | TSDuck: {tsp_processes} (Real Data)")
             
         except Exception as e:
-            self.performance_text.append(f"❌ Error getting real system data: {e}")
+            self.performance_text.append(f"[ERROR] Error getting real system data: {e}")
 
 
 class ToolsWidget(QWidget):
@@ -1746,7 +1746,7 @@ class ToolsWidget(QWidget):
         main_layout = QVBoxLayout()
         
         # Title
-        title = QLabel("🔧 Professional Tools & Utilities")
+        title = QLabel("[TOOL] Professional Tools & Utilities")
         title.setStyleSheet("font-size: 24px; font-weight: bold; color: #FF9800; margin: 20px;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
@@ -1805,7 +1805,7 @@ class UtilitiesWidget(QWidget):
         self.test_stream_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 12px; font-size: 14px; }")
         test_layout.addWidget(self.test_stream_btn)
         
-        self.validate_config_btn = QPushButton("✅ Validate Configuration")
+        self.validate_config_btn = QPushButton("[OK] Validate Configuration")
         self.validate_config_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 12px; font-size: 14px; }")
         test_layout.addWidget(self.validate_config_btn)
         
@@ -1813,7 +1813,7 @@ class UtilitiesWidget(QWidget):
         main_layout.addWidget(test_group)
         
         # System Utilities
-        system_group = QGroupBox("🔧 System Utilities")
+        system_group = QGroupBox("[TOOL] System Utilities")
         system_layout = QVBoxLayout()
         
         self.clear_logs_btn = QPushButton("🗑️ Clear Logs")
@@ -1886,12 +1886,12 @@ class HelpWidget(QWidget):
 # ITAssist Broadcast Encoder - 100 (IBE-100) User Manual
 
 <div class="toc">
-<h3>📋 Table of Contents</h3>
+<h3>[INFO] Table of Contents</h3>
 <ul>
 <li><a href="#overview">🎯 Overview</a></li>
-<li><a href="#quickstart">🚀 Quick Start Guide</a></li>
-<li><a href="#configuration">📋 Detailed Configuration</a></li>
-<li><a href="#inputformats">🔧 Input Formats</a></li>
+<li><a href="#quickstart">[LAUNCH] Quick Start Guide</a></li>
+<li><a href="#configuration">[INFO] Detailed Configuration</a></li>
+<li><a href="#inputformats">[TOOL] Input Formats</a></li>
 <li><a href="#outputformats">📊 Output Formats</a></li>
 <li><a href="#scte35">🎬 SCTE-35 Features</a></li>
 <li><a href="#analyzer">🔍 Analyzer Features</a></li>
@@ -1905,7 +1905,7 @@ class HelpWidget(QWidget):
 <strong>IBE-100</strong> is a professional SCTE-35 streaming solution designed for broadcast distributors. It provides comprehensive TSDuck-based streaming capabilities with advanced ad insertion features for professional broadcast environments.
 </div>
 
-## 🚀 Quick Start Guide
+## [LAUNCH] Quick Start Guide
 
 <div class="step">
 <span class="step-number">1</span>
@@ -1932,7 +1932,7 @@ class HelpWidget(QWidget):
 <strong>Start Streaming</strong>: Click "▶️ Start Processing" to begin streaming
 </div>
 
-## 📋 Detailed Configuration
+## [INFO] Detailed Configuration
 
 ### Service Information
 <table class="table">
@@ -2047,7 +2047,7 @@ class HelpWidget(QWidget):
 </div>
 </div>
 
-## 🔧 Input Formats Supported
+## [TOOL] Input Formats Supported
 
 ### Streaming Protocols
 - **HLS**: HTTP Live Streaming (https://example.com/stream.m3u8)
@@ -2167,7 +2167,7 @@ class HelpWidget(QWidget):
        - **Website**: https://itassist.one
        - **Technical Support**: 24/7 Professional Support
        
-       **🔧 Services:**
+       **[TOOL] Services:**
        - Professional SCTE-35 Streaming Solutions
        - Broadcast Technology Consulting
        - Custom Broadcast Software Development
@@ -2188,12 +2188,12 @@ class HelpWidget(QWidget):
 # ITAssist ब्रॉडकास्ट एनकोडर - 100 (IBE-100) उपयोगकर्ता मैनुअल
 
 <div class="toc hindi">
-<h3>📋 विषय सूची</h3>
+<h3>[INFO] विषय सूची</h3>
 <ul>
 <li><a href="#overview">🎯 अवलोकन</a></li>
-<li><a href="#quickstart">🚀 त्वरित प्रारंभ गाइड</a></li>
-<li><a href="#configuration">📋 विस्तृत कॉन्फ़िगरेशन</a></li>
-<li><a href="#inputformats">🔧 इनपुट प्रारूप</a></li>
+<li><a href="#quickstart">[LAUNCH] त्वरित प्रारंभ गाइड</a></li>
+<li><a href="#configuration">[INFO] विस्तृत कॉन्फ़िगरेशन</a></li>
+<li><a href="#inputformats">[TOOL] इनपुट प्रारूप</a></li>
 <li><a href="#outputformats">📊 आउटपुट प्रारूप</a></li>
 <li><a href="#scte35">🎬 SCTE-35 सुविधाएं</a></li>
 <li><a href="#analyzer">🔍 एनालाइज़र सुविधाएं</a></li>
@@ -2207,7 +2207,7 @@ class HelpWidget(QWidget):
 <strong>IBE-100</strong> एक पेशेवर SCTE-35 स्ट्रीमिंग समाधान है जो ब्रॉडकास्ट डिस्ट्रीब्यूटर्स के लिए डिज़ाइन किया गया है। यह पेशेवर ब्रॉडकास्ट वातावरण के लिए उन्नत विज्ञापन सम्मिलन सुविधाओं के साथ व्यापक TSDuck-आधारित स्ट्रीमिंग क्षमताएं प्रदान करता है।
 </div>
 
-## 🚀 त्वरित प्रारंभ गाइड
+## [LAUNCH] त्वरित प्रारंभ गाइड
 
 <div class="step hindi">
 <span class="step-number">1</span>
@@ -2234,7 +2234,7 @@ class HelpWidget(QWidget):
 <strong>स्ट्रीमिंग शुरू करें</strong>: स्ट्रीमिंग शुरू करने के लिए "▶️ Start Processing" पर क्लिक करें
 </div>
 
-## 📋 विस्तृत कॉन्फ़िगरेशन
+## [INFO] विस्तृत कॉन्फ़िगरेशन
 
 ### सेवा सूचना
 <table class="table hindi">
@@ -2349,7 +2349,7 @@ class HelpWidget(QWidget):
 </div>
 </div>
 
-## 🔧 समर्थित इनपुट प्रारूप
+## [TOOL] समर्थित इनपुट प्रारूप
 
 ### स्ट्रीमिंग प्रोटोकॉल
 - **HLS**: HTTP लाइव स्ट्रीमिंग (https://example.com/stream.m3u8)
@@ -2469,7 +2469,7 @@ class HelpWidget(QWidget):
        - **वेबसाइट**: https://itassist.one
        - **तकनीकी सहायता**: 24/7 पेशेवर सहायता
        
-       **🔧 सेवाएं:**
+       **[TOOL] सेवाएं:**
        - पेशेवर SCTE-35 स्ट्रीमिंग समाधान
        - ब्रॉडकास्ट टेक्नोलॉजी परामर्श
        - कस्टम ब्रॉडकास्ट सॉफ्टवेयर विकास
@@ -2490,12 +2490,12 @@ class HelpWidget(QWidget):
 # ITAssist Broadcast Encoder - 100 (IBE-100) دليل المستخدم
 
 <div class="toc arabic">
-<h3>📋 جدول المحتويات</h3>
+<h3>[INFO] جدول المحتويات</h3>
 <ul>
 <li><a href="#overview">🎯 نظرة عامة</a></li>
-<li><a href="#quickstart">🚀 دليل البدء السريع</a></li>
-<li><a href="#configuration">📋 التكوين التفصيلي</a></li>
-<li><a href="#inputformats">🔧 تنسيقات الإدخال</a></li>
+<li><a href="#quickstart">[LAUNCH] دليل البدء السريع</a></li>
+<li><a href="#configuration">[INFO] التكوين التفصيلي</a></li>
+<li><a href="#inputformats">[TOOL] تنسيقات الإدخال</a></li>
 <li><a href="#outputformats">📊 تنسيقات الإخراج</a></li>
 <li><a href="#scte35">🎬 ميزات SCTE-35</a></li>
 <li><a href="#analyzer">🔍 ميزات المحلل</a></li>
@@ -2509,7 +2509,7 @@ class HelpWidget(QWidget):
 <strong>IBE-100</strong> هو حل بث SCTE-35 احترافي مصمم لموزعي البث. يوفر قدرات بث شاملة قائمة على TSDuck مع ميزات إدراج إعلانات متقدمة للبيئات البث الاحترافية.
 </div>
 
-## 🚀 دليل البدء السريع
+## [LAUNCH] دليل البدء السريع
 
 <div class="step arabic">
 <span class="step-number">1</span>
@@ -2536,7 +2536,7 @@ class HelpWidget(QWidget):
 <strong>بدء البث</strong>: انقر على "▶️ Start Processing" لبدء البث
 </div>
 
-## 📋 التكوين التفصيلي
+## [INFO] التكوين التفصيلي
 
 ### معلومات الخدمة
 <table class="table arabic">
@@ -2651,7 +2651,7 @@ class HelpWidget(QWidget):
 </div>
 </div>
 
-## 🔧 تنسيقات الإدخال المدعومة
+## [TOOL] تنسيقات الإدخال المدعومة
 
 ### بروتوكولات البث
 - **HLS**: HTTP Live Streaming (https://example.com/stream.m3u8)
@@ -2771,7 +2771,7 @@ class HelpWidget(QWidget):
        - **الموقع الإلكتروني**: https://itassist.one
        - **الدعم التقني**: دعم احترافي 24/7
        
-       **🔧 الخدمات:**
+       **[TOOL] الخدمات:**
        - حلول بث SCTE-35 احترافية
        - استشارات تقنية البث
        - تطوير برمجيات البث المخصصة
@@ -3159,7 +3159,7 @@ class TSAnalyzerWidget(QWidget):
             command = self.build_analyzer_command(input_type, input_address, analysis_type)
             
             self.results.append(f"🔍 Starting TSAnalyzer analysis...")
-            self.results.append(f"📋 Command: {' '.join(command)}")
+            self.results.append(f"[INFO] Command: {' '.join(command)}")
             self.results.append("=" * 60)
             
             self.analyzer_process = TSDuckProcessor(command)
@@ -3188,10 +3188,10 @@ class TSAnalyzerWidget(QWidget):
         
         if exit_code == 0:
             self.results.append("=" * 60)
-            self.results.append("✅ Analysis completed successfully")
+            self.results.append("[OK] Analysis completed successfully")
         else:
             self.results.append("=" * 60)
-            self.results.append(f"❌ Analysis failed with exit code {exit_code}")
+            self.results.append(f"[ERROR] Analysis failed with exit code {exit_code}")
     
     def append_analysis_error(self, text: str):
         """Append error text to analysis results"""
@@ -3277,27 +3277,18 @@ class MainWindow(QMainWindow):
         self.monitoring_widget = MonitoringWidget()
         self.tab_widget.addTab(self.monitoring_widget, "📊 Monitoring")
         
-        # SCTE-35 Generation Tab - Marker creation and management
+        # Professional SCTE-35 Tab - Clean, organized interface
         try:
-            from scte35_generation_widget import SCTE35GenerationWidget
-            self.scte35_generation_widget = SCTE35GenerationWidget()
-            self.tab_widget.addTab(self.scte35_generation_widget, "🎬 SCTE-35 Generation")
+            from professional_scte35_widget import ProfessionalSCTE35Widget
+            self.scte35_widget = ProfessionalSCTE35Widget()
+            self.tab_widget.addTab(self.scte35_widget, "[TOOL] SCTE-35 Professional")
         except ImportError as e:
-            print(f"⚠️ SCTE-35 Generation widget not available: {e}")
-            self.scte35_generation_widget = None
-        
-        # SCTE-35 Templates Tab - Professional broadcast templates
-        try:
-            from scte35_template_widget import SCTE35TemplateWidget
-            self.scte35_template_widget = SCTE35TemplateWidget()
-            self.tab_widget.addTab(self.scte35_template_widget, "📋 SCTE-35 Templates")
-        except ImportError as e:
-            print(f"⚠️ SCTE-35 Template widget not available: {e}")
-            self.scte35_template_widget = None
+            print(f"[WARNING] Professional SCTE-35 widget not available: {e}")
+            self.scte35_widget = None
         
         # Tools Tab - Analyzer and utilities
         self.tools_widget = ToolsWidget()
-        self.tab_widget.addTab(self.tools_widget, "🔧 Tools")
+        self.tab_widget.addTab(self.tools_widget, "[TOOL] Tools")
         
         # Help Tab - Enterprise documentation
         self.help_widget = HelpWidget()
@@ -3319,7 +3310,7 @@ class MainWindow(QMainWindow):
         self.kill_btn.setStyleSheet("QPushButton { background-color: #ff5722; color: white; font-weight: bold; padding: 12px; font-size: 14px; }")
         self.kill_btn.clicked.connect(self.kill_all_processes)
         
-        self.load_config_btn = QPushButton("📁 Load Config")
+        self.load_config_btn = QPushButton("[FOLDER] Load Config")
         self.load_config_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; }")
         self.load_config_btn.clicked.connect(self.load_configuration)
         
@@ -3362,7 +3353,7 @@ class MainWindow(QMainWindow):
         footer_layout.addStretch()
         
         # Version info
-        version_text = QLabel("IBE-100 v1.0")
+        version_text = QLabel("IBE-100 v1.2.0")
         version_text.setStyleSheet("""
             QLabel {
                 color: #4CAF50;
@@ -3404,17 +3395,17 @@ class MainWindow(QMainWindow):
         # First try absolute paths
         for path in possible_paths:
             if shutil.which(path):
-                print(f"✅ Found TSDuck at: {path}")
+                print(f"[OK] Found TSDuck at: {path}")
                 return path
         
         # If no absolute path found, try "tsp" in PATH
         tsp_in_path = shutil.which("tsp")
         if tsp_in_path:
-            print(f"✅ Found TSDuck in PATH: {tsp_in_path}")
+            print(f"[OK] Found TSDuck in PATH: {tsp_in_path}")
             return tsp_in_path
                 
         # Fallback to just "tsp" if nothing found
-        print("⚠️ TSDuck not found, using 'tsp' as fallback")
+        print("[WARNING] TSDuck not found, using 'tsp' as fallback")
         return "tsp"
     
     def build_command(self) -> List[str]:
@@ -3532,7 +3523,7 @@ class MainWindow(QMainWindow):
                 "221=" + str(service_config['apid']),  # Audio: 221 → 257
             ])
         else:
-            print(f"✅ No PID remapping needed for {input_type} input - skipping remap plugin")
+            print(f"[OK] No PID remapping needed for {input_type} input - skipping remap plugin")
         
         # Add remaining processing plugins
         command.extend([
@@ -3542,8 +3533,9 @@ class MainWindow(QMainWindow):
             "--add-pid", f"{service_config['apid']}/0x0f",   # Audio PID with AAC type
             "--add-pid", f"{service_config['scte35_pid']}/0x86",  # SCTE-35 PID
             # Inject SCTE-35 markers
-            "-P", "spliceinject", "--service", str(service_config["service_id"]), 
-            "--files", "scte35_final/*.xml",
+            "-P", "spliceinject", "--pid", str(service_config["scte35_pid"]), 
+            "--pts-pid", str(service_config["vpid"]),
+            "--files", "scte35_final/preroll_10023.xml",
             "--inject-count", "1", "--inject-interval", "1000", "--start-delay", "2000",
             # Output configuration
             "-O", output_config["type"].lower(),
@@ -3581,7 +3573,7 @@ class MainWindow(QMainWindow):
                 
         except Exception as e:
             # If we can't determine, be conservative and don't remap
-            print(f"⚠️ Could not check PID conflicts: {e}")
+            print(f"[WARNING] Could not check PID conflicts: {e}")
             return False
     
     def get_output_params(self, output_config):
@@ -3675,7 +3667,7 @@ class MainWindow(QMainWindow):
                     clean_url = processed_input_source.replace("tcp://", "")
                     processed_input_source = clean_url
             
-            console_widget.append_output(f"🚀 Starting IBE-100 processing...")
+            console_widget.append_output(f"[LAUNCH] Starting IBE-100 processing...")
             console_widget.append_output(f"🔍 TSDuck Binary: {command[0]}")
             console_widget.append_output(f"📥 Input Configuration:")
             console_widget.append_output(f"   Type: {input_config['type'].upper()}")
@@ -3689,7 +3681,7 @@ class MainWindow(QMainWindow):
             console_widget.append_output(f"📺 DISTRIBUTOR STREAM SPECIFICATIONS:")
             console_widget.append_output(f"   📺 Video: 1920x1080 HD, H.264, 5 Mbps, GOP:12, B-Frames:5")
             console_widget.append_output(f"   🎵 Audio: AAC-LC, 128 Kbps, -20 db, 48 Khz")
-            console_widget.append_output(f"📋 Service Configuration:")
+            console_widget.append_output(f"[INFO] Service Configuration:")
             console_widget.append_output(f"   Service: {service_config['service_name']} (ID: {service_config['service_id']})")
             console_widget.append_output(f"   Provider: {service_config['provider_name']}")
             console_widget.append_output(f"🔄 PID Remapping (HLS → Distributor):")
@@ -3701,15 +3693,15 @@ class MainWindow(QMainWindow):
             console_widget.append_output(f"   Ad Duration: {scte35_config['ad_duration']} seconds")
             console_widget.append_output(f"   Event ID: {scte35_config['event_id']}")
             console_widget.append_output(f"   Pre-roll: {scte35_config['preroll_duration']} seconds")
-            console_widget.append_output(f"📋 Command: {' '.join(command)}")
+            console_widget.append_output(f"[INFO] Command: {' '.join(command)}")
             
             # Test connection before starting (for network outputs)
             if output_config["type"].lower() in ["srt", "udp", "tcp"]:
                 console_widget.append_output("🔍 Testing connection...")
                 if self.test_connection(output_config):
-                    console_widget.append_output("✅ Connection test passed")
+                    console_widget.append_output("[OK] Connection test passed")
                 else:
-                    console_widget.append_error("❌ Connection test failed - stream may not work")
+                    console_widget.append_error("[ERROR] Connection test failed - stream may not work")
             
             self.processor = TSDuckProcessor(command)
             self.processor.output_received.connect(console_widget.append_output)
@@ -3794,23 +3786,23 @@ class MainWindow(QMainWindow):
             # Kill TSDuck processes
             try:
                 subprocess.run(["pkill", "-f", "tsp"], check=False)
-                self.monitoring_widget.console_widget.append_output("✅ Killed all tsp processes")
+                self.monitoring_widget.console_widget.append_output("[OK] Killed all tsp processes")
             except Exception as e:
-                self.monitoring_widget.console_widget.append_output(f"⚠️ Error killing tsp processes: {e}")
+                self.monitoring_widget.console_widget.append_output(f"[WARNING] Error killing tsp processes: {e}")
             
             # Kill GUI processes
             try:
                 subprocess.run(["pkill", "-f", "tsduck_gui_simplified.py"], check=False)
-                self.monitoring_widget.console_widget.append_output("✅ Killed all GUI processes")
+                self.monitoring_widget.console_widget.append_output("[OK] Killed all GUI processes")
             except Exception as e:
-                self.monitoring_widget.console_widget.append_output(f"⚠️ Error killing GUI processes: {e}")
+                self.monitoring_widget.console_widget.append_output(f"[WARNING] Error killing GUI processes: {e}")
             
             # Kill any remaining TSDuck processes
             try:
                 subprocess.run(["pkill", "-f", "tsduck"], check=False)
-                self.monitoring_widget.console_widget.append_output("✅ Killed all TSDuck processes")
+                self.monitoring_widget.console_widget.append_output("[OK] Killed all TSDuck processes")
             except Exception as e:
-                self.monitoring_widget.console_widget.append_output(f"⚠️ Error killing TSDuck processes: {e}")
+                self.monitoring_widget.console_widget.append_output(f"[WARNING] Error killing TSDuck processes: {e}")
             
             # Check for remaining processes
             try:
@@ -3819,12 +3811,12 @@ class MainWindow(QMainWindow):
                 tsduck_count = result.stdout.count("tsduck")
                 
                 if tsp_count == 0 and tsduck_count == 0:
-                    self.monitoring_widget.console_widget.append_output("✅ All TSDuck processes killed successfully")
+                    self.monitoring_widget.console_widget.append_output("[OK] All TSDuck processes killed successfully")
                 else:
-                    self.monitoring_widget.console_widget.append_output(f"⚠️ {tsp_count} tsp processes and {tsduck_count} tsduck processes still running")
+                    self.monitoring_widget.console_widget.append_output(f"[WARNING] {tsp_count} tsp processes and {tsduck_count} tsduck processes still running")
                     
             except Exception as e:
-                self.monitoring_widget.console_widget.append_output(f"⚠️ Error checking remaining processes: {e}")
+                self.monitoring_widget.console_widget.append_output(f"[WARNING] Error checking remaining processes: {e}")
             
             # Reset GUI state
             self.start_btn.setEnabled(True)
@@ -3832,7 +3824,7 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("All processes killed")
             
         except Exception as e:
-            self.monitoring_widget.console_widget.append_output(f"❌ Error killing processes: {e}")
+            self.monitoring_widget.console_widget.append_output(f"[ERROR] Error killing processes: {e}")
             QMessageBox.critical(self, "Error", f"Failed to kill processes: {str(e)}")
     
     def processing_finished(self, exit_code: int):
@@ -3844,10 +3836,10 @@ class MainWindow(QMainWindow):
         
         if exit_code == 0:
             self.statusBar().showMessage("Processing completed successfully")
-            console_widget.append_output("✅ Processing completed successfully")
+            console_widget.append_output("[OK] Processing completed successfully")
         else:
             self.statusBar().showMessage(f"Processing failed with exit code {exit_code}")
-            console_widget.append_error(f"❌ Processing failed with exit code {exit_code}")
+            console_widget.append_error(f"[ERROR] Processing failed with exit code {exit_code}")
             
             # Provide specific error guidance based on common issues
             if exit_code == 1:
@@ -3879,7 +3871,7 @@ class MainWindow(QMainWindow):
                 with open(file_path, 'r') as f:
                     config = json.load(f)
                 self.apply_configuration(config)
-                self.monitoring_widget.console_widget.append_output(f"📁 Configuration loaded from {file_path}")
+                self.monitoring_widget.console_widget.append_output(f"[FOLDER] Configuration loaded from {file_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to load configuration: {str(e)}")
     
@@ -3948,6 +3940,11 @@ class MainWindow(QMainWindow):
 
 def main():
     """Main application entry point"""
+    # Fix Windows console encoding for Unicode characters
+    if sys.platform.startswith('win'):
+        import os
+        os.system('chcp 65001 >nul 2>&1')  # Set UTF-8 encoding
+    
     app = QApplication(sys.argv)
     app.setApplicationName("ITAssist Broadcast Encoder - 100 (IBE-100) v1.1.0")
     
@@ -3955,15 +3952,15 @@ def main():
     import platform
     if platform.system() == "Windows":
         app.setStyle("Fusion")  # Use Fusion style for consistent theming
-        print("✅ Windows detected - applying Fusion style for consistent dark theme")
+        print("Windows detected - applying Fusion style for consistent dark theme")
     
         # Set application style - Force dark theme on all platforms
     try:
         import qdarkstyle
         app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
-        print("✅ Dark theme applied using qdarkstyle")
+        print("Dark theme applied using qdarkstyle")
     except ImportError:
-        print("⚠️  qdarkstyle not available, using custom dark theme")
+        print("qdarkstyle not available, using custom dark theme")
         # Comprehensive dark theme fallback
         app.setStyleSheet("""
             /* Force dark theme on all platforms */
@@ -4189,9 +4186,9 @@ def main():
         with open('gui_working_config.json', 'r') as f:
             config = json.load(f)
         window.apply_configuration(config)
-        window.monitoring_widget.console_widget.append_output("✅ Working configuration loaded automatically")
+        window.monitoring_widget.console_widget.append_output("[OK] Working configuration loaded automatically")
     except FileNotFoundError:
-        window.monitoring_widget.console_widget.append_output("ℹ️ Using default configuration")
+        window.monitoring_widget.console_widget.append_output("[INFO] Using default configuration")
     
     # Run application
     sys.exit(app.exec())
