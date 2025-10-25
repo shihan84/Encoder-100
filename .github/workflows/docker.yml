@@ -56,10 +56,10 @@ jobs:
       - name: Test Docker image
         run: |
           # Test image can start
-          docker run --rm ghcr.io/shihan84/encoder-100:latest tsp --version
+          docker run --rm ${{ steps.meta.outputs.tags }} tsp --version
           
           # Test GUI can start (headless)
-          docker run --rm -e DISPLAY=:99 ghcr.io/shihan84/encoder-100:latest python -c "
+          docker run --rm -e DISPLAY=:99 ${{ steps.meta.outputs.tags }} python -c "
           import sys
           sys.argv = ['tsduck_gui_simplified.py', '--test']
           try:

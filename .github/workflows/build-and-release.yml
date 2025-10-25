@@ -69,6 +69,7 @@ jobs:
 
       - name: Install system dependencies (Windows)
         if: matrix.platform == 'windows'
+        shell: pwsh
         run: |
           # Install Chocolatey if not present
           if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
@@ -76,8 +77,8 @@ jobs:
             [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
             iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
           }
-          choco install tsduck -y || echo "TSDuck installation failed, continuing..."
-          tsp --version || echo "TSDuck not found in PATH"
+          choco install tsduck -y
+          tsp --version
 
       - name: Install Python dependencies
         run: |
@@ -98,9 +99,17 @@ jobs:
 
       - name: Build application (Windows)
         if: matrix.platform == 'windows'
+        shell: pwsh
         run: |
           # Set timeout for Windows build
-          $timeout = 1800; $job = Start-Job -ScriptBlock { & .\build.bat onefile }; if (Wait-Job $job -Timeout $timeout) { Receive-Job $job } else { Stop-Job $job; echo "Build timed out or failed, continuing..." }
+          $timeout = 1800
+          $job = Start-Job -ScriptBlock { & .\build.bat onefile }
+          if (Wait-Job $job -Timeout $timeout) { 
+            Receive-Job $job 
+          } else { 
+            Stop-Job $job
+            echo "Build timed out or failed, continuing..."
+          }
 
       - name: Create AppImage (Linux)
         if: matrix.platform == 'linux' && matrix.arch == 'x64'
@@ -307,8 +316,10 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          exit-code: '0'
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
+        if: always()
         with:
           sarif_file: 'trivy-results.sarif'
