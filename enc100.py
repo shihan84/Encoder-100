@@ -44,14 +44,47 @@ class TSDuckProcessor(QThread):
     def run(self):
         """Execute the TSDuck command"""
         try:
-            # Run command without redirecting stdout/stderr to allow direct streaming
-            # This is crucial for SRT connections to work properly
+            # Run command with proper output capture for GUI display
             self.process = subprocess.Popen(
                 self.command,
-                stdout=None,  # Let output go to terminal
-                stderr=None,  # Let errors go to terminal
-                text=True
+                stdout=subprocess.PIPE,  # Capture stdout for GUI
+                stderr=subprocess.PIPE,  # Capture stderr for GUI
+                text=True,
+                bufsize=1,  # Line buffered
+                universal_newlines=True
             )
+            
+            # Start reading output in real-time
+            import threading
+            
+            def read_output():
+                """Read stdout and emit to GUI"""
+                try:
+                    for line in iter(self.process.stdout.readline, ''):
+                        if self._stop_requested:
+                            break
+                        if line.strip():
+                            self.output_received.emit(line.strip())
+                except Exception as e:
+                    self.error_received.emit(f"Output reading error: {str(e)}")
+            
+            def read_errors():
+                """Read stderr and emit to GUI"""
+                try:
+                    for line in iter(self.process.stderr.readline, ''):
+                        if self._stop_requested:
+                            break
+                        if line.strip():
+                            self.error_received.emit(line.strip())
+                except Exception as e:
+                    self.error_received.emit(f"Error reading error: {str(e)}")
+            
+            # Start output reading threads
+            output_thread = threading.Thread(target=read_output, daemon=True)
+            error_thread = threading.Thread(target=read_errors, daemon=True)
+            
+            output_thread.start()
+            error_thread.start()
             
             # Wait for process to complete or be stopped
             while True:
@@ -65,6 +98,10 @@ class TSDuckProcessor(QThread):
                     
                 # Small delay to prevent busy waiting
                 self.msleep(100)
+            
+            # Wait for threads to finish
+            output_thread.join(timeout=1)
+            error_thread.join(timeout=1)
                 
             # Get return code
             return_code = self.process.returncode if self.process else 1
@@ -3463,10 +3500,23 @@ class MainWindow(QMainWindow):
             # Set service name and provider using SDT plugin (TSDuck standard)
             "-P", "sdt", "--service", str(service_config["service_id"]), 
             "--name", service_config["service_name"], "--provider", service_config["provider_name"],
-            # Remap existing PIDs to distributor requirements
-            "-P", "remap", 
-            "211=" + str(service_config['vpid']),  # Video: 211 → 256
-            "221=" + str(service_config['apid']),  # Audio: 221 → 257
+        ])
+        
+        # Smart PID remapping - only remap if there are actual conflicts
+        remap_needed = self.check_pid_conflicts(input_type, input_source, service_config)
+        if remap_needed:
+            print(f"🔄 PID remapping needed for {input_type} input - adding remap plugin")
+            command.extend([
+                # Remap existing PIDs to distributor requirements (only when needed)
+                "-P", "remap", 
+                "211=" + str(service_config['vpid']),  # Video: 211 → 256
+                "221=" + str(service_config['apid']),  # Audio: 221 → 257
+            ])
+        else:
+            print(f"✅ No PID remapping needed for {input_type} input - skipping remap plugin")
+        
+        # Add remaining processing plugins
+        command.extend([
             # Configure PIDs using PMT plugin
             "-P", "pmt", "--service", str(service_config["service_id"]), 
             "--add-pid", f"{service_config['vpid']}/0x1b",  # Video PID with H.264 type
@@ -3481,6 +3531,39 @@ class MainWindow(QMainWindow):
             *self.get_output_params(output_config)
         ])
         return command
+    
+    def check_pid_conflicts(self, input_type, input_source, service_config):
+        """Check if PID remapping is needed to avoid conflicts"""
+        try:
+            # For SRT input, we assume the stream may already have the target PIDs
+            # so we should avoid remapping to prevent conflicts
+            if input_type == "srt":
+                # SRT streams often come with pre-configured PIDs
+                # Don't remap to avoid "PID present both in input and remap" error
+                return False
+            
+            # For HLS input, we know the typical PIDs (211, 221) and need to remap
+            elif input_type == "hls":
+                # HLS typically has PIDs 211 (video) and 221 (audio)
+                # We need to remap these to our target PIDs
+                return True
+            
+            # For UDP/TCP input, assume we need remapping for standardization
+            elif input_type in ["udp", "tcp"]:
+                return True
+            
+            # For file input, assume we need remapping for standardization
+            elif input_type == "file":
+                return True
+            
+            # For other input types, be conservative and don't remap
+            else:
+                return False
+                
+        except Exception as e:
+            # If we can't determine, be conservative and don't remap
+            print(f"⚠️ Could not check PID conflicts: {e}")
+            return False
     
     def get_output_params(self, output_config):
         """Get output parameters based on output type"""
@@ -3601,6 +3684,14 @@ class MainWindow(QMainWindow):
             console_widget.append_output(f"   Pre-roll: {scte35_config['preroll_duration']} seconds")
             console_widget.append_output(f"📋 Command: {' '.join(command)}")
             
+            # Test connection before starting (for network outputs)
+            if output_config["type"].lower() in ["srt", "udp", "tcp"]:
+                console_widget.append_output("🔍 Testing connection...")
+                if self.test_connection(output_config):
+                    console_widget.append_output("✅ Connection test passed")
+                else:
+                    console_widget.append_error("❌ Connection test failed - stream may not work")
+            
             self.processor = TSDuckProcessor(command)
             self.processor.output_received.connect(console_widget.append_output)
             self.processor.error_received.connect(console_widget.append_error)
@@ -3619,7 +3710,59 @@ class MainWindow(QMainWindow):
         """Stop IBE-100 processing"""
         if self.processor:
             self.processor.stop()
-            self.monitoring_widget.console_widget.append_output("⏹️ Stopping processing...")
+    
+    def test_connection(self, output_config):
+        """Test connection to output destination"""
+        try:
+            import socket
+            import urllib.parse
+            
+            output_type = output_config["type"].lower()
+            destination = output_config.get("destination", "")
+            
+            if output_type == "srt":
+                # For SRT, we can't easily test without SRT library
+                # Just check if host:port is reachable
+                if "://" in destination:
+                    parsed = urllib.parse.urlparse(destination)
+                    host, port = parsed.hostname, parsed.port or 8888
+                else:
+                    if ":" in destination:
+                        host, port = destination.split(":", 1)
+                        port = int(port)
+                    else:
+                        return True  # Can't test without port
+                
+                # Test TCP connection (SRT uses TCP-like connection)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5)
+                result = sock.connect_ex((host, port))
+                sock.close()
+                return result == 0
+                
+            elif output_type in ["udp", "tcp"]:
+                if "://" in destination:
+                    parsed = urllib.parse.urlparse(destination)
+                    host, port = parsed.hostname, parsed.port or 8888
+                else:
+                    if ":" in destination:
+                        host, port = destination.split(":", 1)
+                        port = int(port)
+                    else:
+                        return True  # Can't test without port
+                
+                # Test connection
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM if output_type == "tcp" else socket.SOCK_DGRAM)
+                sock.settimeout(5)
+                result = sock.connect_ex((host, port))
+                sock.close()
+                return result == 0
+            
+            return True  # For other types, assume OK
+            
+        except Exception as e:
+            self.monitoring_widget.console_widget.append_error(f"Connection test error: {str(e)}")
+            return False
     
     def kill_all_processes(self):
         """Kill all TSDuck and related processes"""
@@ -3678,12 +3821,28 @@ class MainWindow(QMainWindow):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         
+        console_widget = self.monitoring_widget.console_widget
+        
         if exit_code == 0:
             self.statusBar().showMessage("Processing completed successfully")
-            self.monitoring_widget.console_widget.append_output("✅ Processing completed successfully")
+            console_widget.append_output("✅ Processing completed successfully")
         else:
             self.statusBar().showMessage(f"Processing failed with exit code {exit_code}")
-            self.monitoring_widget.console_widget.append_error(f"❌ Processing failed with exit code {exit_code}")
+            console_widget.append_error(f"❌ Processing failed with exit code {exit_code}")
+            
+            # Provide specific error guidance based on common issues
+            if exit_code == 1:
+                console_widget.append_error("💡 Common solutions:")
+                console_widget.append_error("   • Check if TSDuck is properly installed")
+                console_widget.append_error("   • Verify input source is accessible")
+                console_widget.append_error("   • Check output destination permissions")
+                console_widget.append_error("   • For SRT: verify server is accepting connections")
+            elif exit_code == 2:
+                console_widget.append_error("💡 Configuration error - check your settings")
+            elif exit_code == 3:
+                console_widget.append_error("💡 Network error - check connection settings")
+            else:
+                console_widget.append_error("💡 Check the error messages above for specific issues")
     
     def load_configuration(self, config_dict=None):
         """Load configuration from file or dictionary"""
