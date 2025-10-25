@@ -193,7 +193,7 @@ build_application() {
             --exclude-module "matplotlib" \
             --exclude-module "numpy" \
             --exclude-module "pandas" \
-            tsduck_gui_simplified.py
+            enc100.py
         
         print_status "Single executable created: dist/${APP_NAME}"
         
@@ -213,7 +213,7 @@ build_application() {
             --exclude-module "matplotlib" \
             --exclude-module "numpy" \
             --exclude-module "pandas" \
-            tsduck_gui_simplified.py
+            enc100.py
         
         print_status "Directory distribution created: dist/${APP_NAME}"
         

@@ -67,4 +67,5 @@ temp/
 # Personal access tokens (security)
 *.token
 *.key
-.env
+.envadbreak3/
+tsduck/

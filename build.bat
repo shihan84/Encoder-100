@@ -143,7 +143,7 @@ if "%BUILD_TYPE%"=="onefile" (
         --exclude-module "matplotlib" ^
         --exclude-module "numpy" ^
         --exclude-module "pandas" ^
-        tsduck_gui_simplified.py
+        enc100.py
     
     call :print_status "Single executable created: dist\%APP_NAME%.exe"
     
@@ -163,7 +163,7 @@ if "%BUILD_TYPE%"=="onefile" (
         --exclude-module "matplotlib" ^
         --exclude-module "numpy" ^
         --exclude-module "pandas" ^
-        tsduck_gui_simplified.py
+        enc100.py
     
     call :print_status "Directory distribution created: dist\%APP_NAME%"
     
