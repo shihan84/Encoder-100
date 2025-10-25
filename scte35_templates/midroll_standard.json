@@ -1,0 +1,33 @@
+{
+  "name": "Midroll Ad Break",
+  "description": "Ad break during main program content",
+  "scenario": "midroll",
+  "markers": [
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10100,
+      "description": "Midroll timing signal (10s before)",
+      "pts_offset": 80100000,
+      "purpose": "Warn of upcoming midroll break"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10101,
+      "description": "Midroll ad break start (60s)",
+      "duration": 60,
+      "pts_offset": 81000000,
+      "purpose": "Start of midroll commercial content"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10102,
+      "description": "Return to main program",
+      "pts_offset": 86400000,
+      "purpose": "End of midroll, resume main content"
+    }
+  ],
+  "total_duration": 70,
+  "program_duration": 1800,
+  "midroll_time": 900,
+  "use_case": "Long-form content, movies, live events, sports"
+}

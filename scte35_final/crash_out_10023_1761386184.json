@@ -1,0 +1,8 @@
+{
+  "type": "CRASH-OUT",
+  "event_id": 10023,
+  "duration_seconds": 0,
+  "description": "Emergency program out - immediate break",
+  "timestamp": 1761386184,
+  "xml_file": "scte35_final/crash_out_10023_1761386184.xml"
+}

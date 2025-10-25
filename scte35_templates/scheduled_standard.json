@@ -1,0 +1,33 @@
+{
+  "name": "Scheduled Ad Break",
+  "description": "Ad break scheduled for 14:30:00",
+  "scenario": "scheduled",
+  "scheduled_time": "14:30:00",
+  "scheduled_seconds": 52200,
+  "markers": [
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10300,
+      "description": "Scheduled timing signal (15s before 14:30:00)",
+      "pts_offset": 4696650000,
+      "purpose": "Advance warning of scheduled break"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10301,
+      "description": "Scheduled ad break start (60s) at 14:30:00",
+      "duration": 60,
+      "pts_offset": 4698000000,
+      "purpose": "Start of scheduled commercial content"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10302,
+      "description": "Return to scheduled programming",
+      "pts_offset": 4703400000,
+      "purpose": "End of scheduled break, resume programming"
+    }
+  ],
+  "total_duration": 75,
+  "use_case": "Scheduled programming, news breaks, regular intervals"
+}

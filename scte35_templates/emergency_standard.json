@@ -1,0 +1,22 @@
+{
+  "name": "Emergency Break",
+  "description": "Immediate emergency program interruption",
+  "scenario": "emergency",
+  "markers": [
+    {
+      "type": "CRASH-OUT",
+      "event_id": 10400,
+      "description": "Emergency program out - immediate",
+      "immediate": true,
+      "purpose": "Immediate emergency interruption"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10401,
+      "description": "Return to program after emergency",
+      "purpose": "Resume normal programming"
+    }
+  ],
+  "total_duration": 0,
+  "use_case": "Breaking news, emergency alerts, technical issues"
+}

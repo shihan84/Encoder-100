@@ -1,0 +1,81 @@
+{
+  "name": "Multiple Ad Breaks",
+  "description": "Multiple ad breaks at specified times",
+  "scenario": "multi_break",
+  "break_times": [
+    300,
+    900,
+    1500
+  ],
+  "ad_duration": 30,
+  "markers": [
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10500,
+      "description": "Break 1 warning (5s before)",
+      "pts_offset": 26550000,
+      "purpose": "Warning for break 1"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10501,
+      "description": "Break 1 start (30s)",
+      "duration": 30,
+      "pts_offset": 27000000,
+      "purpose": "Start of break 1"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10502,
+      "description": "End of break 1",
+      "pts_offset": 29700000,
+      "purpose": "End of break 1"
+    },
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10503,
+      "description": "Break 2 warning (5s before)",
+      "pts_offset": 80550000,
+      "purpose": "Warning for break 2"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10504,
+      "description": "Break 2 start (30s)",
+      "duration": 30,
+      "pts_offset": 81000000,
+      "purpose": "Start of break 2"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10505,
+      "description": "End of break 2",
+      "pts_offset": 83700000,
+      "purpose": "End of break 2"
+    },
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10506,
+      "description": "Break 3 warning (5s before)",
+      "pts_offset": 134550000,
+      "purpose": "Warning for break 3"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10507,
+      "description": "Break 3 start (30s)",
+      "duration": 30,
+      "pts_offset": 135000000,
+      "purpose": "Start of break 3"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10508,
+      "description": "End of break 3",
+      "pts_offset": 137700000,
+      "purpose": "End of break 3"
+    }
+  ],
+  "total_duration": 105,
+  "use_case": "Long-form content with multiple commercial breaks"
+}

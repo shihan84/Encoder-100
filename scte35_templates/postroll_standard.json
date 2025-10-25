@@ -1,0 +1,29 @@
+{
+  "name": "Postroll Ad Break",
+  "description": "Ad break after main program content",
+  "scenario": "postroll",
+  "markers": [
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10200,
+      "description": "Postroll timing signal (3s before)",
+      "pts_offset": -270000,
+      "purpose": "Signal end of main content"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10201,
+      "description": "Postroll ad break start (30s)",
+      "duration": 30,
+      "purpose": "Start of postroll commercial content"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10202,
+      "description": "End of content",
+      "purpose": "End of postroll, end of stream"
+    }
+  ],
+  "total_duration": 33,
+  "use_case": "End of programs, credits, next program promotion"
+}

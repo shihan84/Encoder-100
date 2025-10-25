@@ -1,0 +1,29 @@
+{
+  "name": "Preroll Ad Break",
+  "description": "Ad break before main program content",
+  "scenario": "preroll",
+  "markers": [
+    {
+      "type": "TIME_SIGNAL",
+      "event_id": 10000,
+      "description": "Preroll timing signal (5s before)",
+      "pts_offset": -450000,
+      "purpose": "Warn downstream systems of upcoming ad break"
+    },
+    {
+      "type": "CUE-OUT",
+      "event_id": 10001,
+      "description": "Preroll ad break start (30s)",
+      "duration": 30,
+      "purpose": "Start of preroll commercial content"
+    },
+    {
+      "type": "CUE-IN",
+      "event_id": 10002,
+      "description": "Return to main program",
+      "purpose": "End of preroll, start of main content"
+    }
+  ],
+  "total_duration": 35,
+  "use_case": "Live streams, on-demand content, scheduled programming"
+}

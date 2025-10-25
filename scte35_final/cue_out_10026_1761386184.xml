@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tsduck>
+    <splice_insert>
+        <splice_event_id>10026</splice_event_id>
+        <splice_event_cancel_indicator>0</splice_event_cancel_indicator>
+        <out_of_network_indicator>1</out_of_network_indicator>
+        <program_splice_flag>1</program_splice_flag>
+        <duration_flag>1</duration_flag>
+        <splice_immediate_flag>0</splice_immediate_flag>
+        <splice_time>
+            <pts_time>158524756625185</pts_time>
+        </splice_time>
+        <break_duration>
+            <auto_return>0</auto_return>
+            <duration>5400000</duration>
+        </break_duration>
+        <unique_program_id>1</unique_program_id>
+        <avail_num>1</avail_num>
+        <avails_expected>1</avails_expected>
+    </splice_insert>
+</tsduck>

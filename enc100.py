@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-ITAssist Broadcast Encoder - 100 (IBE-100)
+ITAssist Broadcast Encoder - 100 (IBE-100) v1.1.0
 Professional SCTE-35 Streaming Solution for Distributors
+Enhanced with SCTE-35 Marker Generation and Template System
 """
 
 import sys
@@ -3276,6 +3277,24 @@ class MainWindow(QMainWindow):
         self.monitoring_widget = MonitoringWidget()
         self.tab_widget.addTab(self.monitoring_widget, "📊 Monitoring")
         
+        # SCTE-35 Generation Tab - Marker creation and management
+        try:
+            from scte35_generation_widget import SCTE35GenerationWidget
+            self.scte35_generation_widget = SCTE35GenerationWidget()
+            self.tab_widget.addTab(self.scte35_generation_widget, "🎬 SCTE-35 Generation")
+        except ImportError as e:
+            print(f"⚠️ SCTE-35 Generation widget not available: {e}")
+            self.scte35_generation_widget = None
+        
+        # SCTE-35 Templates Tab - Professional broadcast templates
+        try:
+            from scte35_template_widget import SCTE35TemplateWidget
+            self.scte35_template_widget = SCTE35TemplateWidget()
+            self.tab_widget.addTab(self.scte35_template_widget, "📋 SCTE-35 Templates")
+        except ImportError as e:
+            print(f"⚠️ SCTE-35 Template widget not available: {e}")
+            self.scte35_template_widget = None
+        
         # Tools Tab - Analyzer and utilities
         self.tools_widget = ToolsWidget()
         self.tab_widget.addTab(self.tools_widget, "🔧 Tools")
@@ -3930,7 +3949,7 @@ class MainWindow(QMainWindow):
 def main():
     """Main application entry point"""
     app = QApplication(sys.argv)
-    app.setApplicationName("ITAssist Broadcast Encoder - 100 (IBE-100)")
+    app.setApplicationName("ITAssist Broadcast Encoder - 100 (IBE-100) v1.1.0")
     
     # Force dark theme on Windows
     import platform

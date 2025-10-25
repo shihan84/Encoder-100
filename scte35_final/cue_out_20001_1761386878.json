@@ -1,0 +1,8 @@
+{
+  "type": "CUE-OUT",
+  "event_id": 20001,
+  "duration_seconds": 45,
+  "description": "Program out point - 45s ad break",
+  "timestamp": 1761386878,
+  "xml_file": "scte35_final/cue_out_20001_1761386878.xml"
+}

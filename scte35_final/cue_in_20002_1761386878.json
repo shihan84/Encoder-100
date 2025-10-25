@@ -1,0 +1,8 @@
+{
+  "type": "CUE-IN",
+  "event_id": 20002,
+  "duration_seconds": 0,
+  "description": "Program in point - return to program",
+  "timestamp": 1761386878,
+  "xml_file": "scte35_final/cue_in_20002_1761386878.xml"
+}

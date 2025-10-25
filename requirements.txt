@@ -8,6 +8,9 @@ PyQt6>=6.0.0
 # System Monitoring
 psutil>=5.8.0
 
+# SCTE-35 Marker Generation
+threefive>=2.3.0
+
 # Packaging Dependencies
 pyinstaller>=5.0.0
 cx-freeze>=6.0.0

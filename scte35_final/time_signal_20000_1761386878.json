@@ -1,0 +1,8 @@
+{
+  "type": "TIME_SIGNAL",
+  "event_id": 20000,
+  "duration_seconds": 0,
+  "description": "Time signal for timing reference",
+  "timestamp": 1761386878,
+  "xml_file": "scte35_final/time_signal_20000_1761386878.xml"
+}
