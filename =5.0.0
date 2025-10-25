@@ -1,0 +1,14 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting pyinstaller
+  Downloading pyinstaller-6.16.0-py3-none-macosx_10_13_universal2.whl (1.0 MB)
+Requirement already satisfied: setuptools>=42.0.0 in /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/site-packages (from pyinstaller) (58.0.4)
+Requirement already satisfied: macholib>=1.8 in /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/site-packages (from pyinstaller) (1.15.2)
+Requirement already satisfied: packaging>=22.0 in /Users/macair/Library/Python/3.9/lib/python/site-packages (from pyinstaller) (25.0)
+Collecting importlib-metadata>=4.6
+  Downloading importlib_metadata-8.7.0-py3-none-any.whl (27 kB)
+Collecting pyinstaller-hooks-contrib>=2025.8
+  Downloading pyinstaller_hooks_contrib-2025.9-py3-none-any.whl (444 kB)
+Requirement already satisfied: altgraph in /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/site-packages (from pyinstaller) (0.17.2)
+Requirement already satisfied: zipp>=3.20 in /Users/macair/Library/Python/3.9/lib/python/site-packages (from importlib-metadata>=4.6->pyinstaller) (3.23.0)
+Installing collected packages: importlib-metadata, pyinstaller-hooks-contrib, pyinstaller
+Successfully installed importlib-metadata-8.7.0 pyinstaller-6.16.0 pyinstaller-hooks-contrib-2025.9

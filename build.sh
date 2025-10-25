@@ -66,6 +66,12 @@ check_pyinstaller() {
         print_warning "PyInstaller not found. Installing..."
         pip3 install pyinstaller>=5.0.0
     fi
+    
+    # Check if PyInstaller can be run
+    if ! python3 -m PyInstaller --version &> /dev/null; then
+        print_error "PyInstaller is not accessible via python3 -m PyInstaller"
+        exit 1
+    fi
     print_status "PyInstaller is ready"
 }
 
@@ -179,7 +185,7 @@ build_application() {
     
     if [ "$BUILD_TYPE" = "onefile" ]; then
         print_info "Creating single executable file..."
-        pyinstaller --onefile --windowed \
+        python3 -m PyInstaller --onefile --windowed \
             --name "${APP_NAME}" \
             --icon "assets/icon.png" \
             --add-data "scte35_final:scte35_final" \
@@ -199,7 +205,7 @@ build_application() {
         
     elif [ "$BUILD_TYPE" = "onedir" ]; then
         print_info "Creating directory distribution..."
-        pyinstaller --onedir --windowed \
+        python3 -m PyInstaller --onedir --windowed \
             --name "${APP_NAME}" \
             --icon "assets/icon.png" \
             --add-data "scte35_final:scte35_final" \
@@ -219,7 +225,7 @@ build_application() {
         
     elif [ "$BUILD_TYPE" = "spec" ]; then
         print_info "Building using spec file..."
-        pyinstaller specs/IBE-100.spec
+        python3 -m PyInstaller specs/IBE-100.spec
         print_status "Spec-based build completed"
         
     else

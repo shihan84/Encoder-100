@@ -3773,29 +3773,233 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("ITAssist Broadcast Encoder - 100 (IBE-100)")
     
-        # Set application style
+    # Force dark theme on Windows
+    import platform
+    if platform.system() == "Windows":
+        app.setStyle("Fusion")  # Use Fusion style for consistent theming
+        print("✅ Windows detected - applying Fusion style for consistent dark theme")
+    
+        # Set application style - Force dark theme on all platforms
     try:
         import qdarkstyle
         app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
+        print("✅ Dark theme applied using qdarkstyle")
     except ImportError:
-        # Fallback style
+        print("⚠️  qdarkstyle not available, using custom dark theme")
+        # Comprehensive dark theme fallback
         app.setStyleSheet("""
-            QMainWindow { background-color: #2b2b2b; color: #ffffff; }
-            QTabWidget::pane { border: 1px solid #555; background-color: #2b2b2b; }
-            QTabBar::tab { background-color: #3c3c3c; color: #ffffff; padding: 8px 16px; margin-right: 2px; }
-            QTabBar::tab:selected { background-color: #4CAF50; }
-            QTabBar::tab:hover { background-color: #555; }
-            QGroupBox { font-weight: bold; border: 2px solid #555; border-radius: 8px; margin: 8px; padding-top: 15px; }
-            QGroupBox::title { subcontrol-origin: margin; left: 15px; padding: 0 8px 0 8px; color: #4CAF50; }
-            QLineEdit { background-color: #3c3c3c; border: 1px solid #555; padding: 8px; border-radius: 4px; font-size: 12px; }
-            QComboBox { background-color: #3c3c3c; border: 1px solid #555; padding: 8px; border-radius: 4px; font-size: 12px; }
-            QCheckBox { font-size: 12px; spacing: 8px; }
-            QCheckBox::indicator { width: 16px; height: 16px; }
-            QCheckBox::indicator:checked { background-color: #4CAF50; border: 1px solid #4CAF50; }
-            QPushButton { border: none; padding: 8px; border-radius: 6px; font-size: 12px; }
-            QPushButton:hover { opacity: 0.9; }
-            QPushButton:pressed { opacity: 0.7; }
-            QTextEdit { background-color: #1e1e1e; color: #ffffff; border: 1px solid #555; border-radius: 4px; font-family: 'Monaco', 'Consolas', monospace; }
+            /* Force dark theme on all platforms */
+            QMainWindow { 
+                background-color: #2b2b2b; 
+                color: #ffffff; 
+            }
+            
+            QWidget {
+                background-color: #2b2b2b;
+                color: #ffffff;
+                font-family: 'Segoe UI', 'Arial', sans-serif;
+            }
+            
+            QTabWidget::pane { 
+                border: 1px solid #555; 
+                background-color: #2b2b2b; 
+            }
+            
+            QTabBar::tab {
+                background-color: #404040;
+                color: #ffffff;
+                padding: 8px 16px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+            
+            QTabBar::tab:selected {
+                background-color: #2b2b2b;
+                border-bottom: 2px solid #64b5f6;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #404040;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background-color: #353535;
+                color: #ffffff;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #64b5f6;
+                font-size: 10pt;
+                font-weight: 600;
+            }
+            
+            QPushButton {
+                background-color: #404040;
+                border: 1px solid #555555;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+                min-height: 20px;
+                color: #ffffff;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a4a4a;
+                border-color: #64b5f6;
+            }
+            
+            QPushButton:pressed {
+                background-color: #2a2a2a;
+            }
+            
+            QLineEdit, QSpinBox, QComboBox {
+                background-color: #404040;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                padding: 6px 8px;
+                color: #ffffff;
+                selection-background-color: #64b5f6;
+            }
+            
+            QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
+                border-color: #64b5f6;
+                border-width: 2px;
+            }
+            
+            QTextEdit, QPlainTextEdit {
+                background-color: #1e1e1e;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                padding: 8px;
+                color: #ffffff;
+                font-family: 'Consolas', 'Monaco', monospace;
+            }
+            
+            QTableWidget {
+                background-color: #2b2b2b;
+                alternate-background-color: #353535;
+                selection-background-color: #64b5f6;
+                gridline-color: #404040;
+                border: 1px solid #555555;
+                color: #ffffff;
+            }
+            
+            QHeaderView::section {
+                background-color: #404040;
+                color: #ffffff;
+                padding: 8px;
+                border: none;
+                border-right: 1px solid #555555;
+                border-bottom: 1px solid #555555;
+                font-weight: 600;
+            }
+            
+            QProgressBar {
+                border: 1px solid #555555;
+                border-radius: 4px;
+                text-align: center;
+                background-color: #404040;
+                color: #ffffff;
+            }
+            
+            QProgressBar::chunk {
+                background-color: #64b5f6;
+                border-radius: 3px;
+            }
+            
+            QCheckBox {
+                color: #ffffff;
+                spacing: 8px;
+            }
+            
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 1px solid #555555;
+                border-radius: 3px;
+                background-color: #404040;
+            }
+            
+            QCheckBox::indicator:checked {
+                background-color: #64b5f6;
+                border-color: #64b5f6;
+            }
+            
+            QStatusBar {
+                background-color: #353535;
+                border-top: 1px solid #555555;
+                color: #ffffff;
+            }
+            
+            QMenuBar {
+                background-color: #353535;
+                color: #ffffff;
+                border-bottom: 1px solid #555555;
+            }
+            
+            QMenuBar::item {
+                padding: 6px 12px;
+                background-color: transparent;
+            }
+            
+            QMenuBar::item:selected {
+                background-color: #4a4a4a;
+            }
+            
+            QMenu {
+                background-color: #404040;
+                color: #ffffff;
+                border: 1px solid #555555;
+                border-radius: 4px;
+            }
+            
+            QMenu::item {
+                padding: 6px 20px;
+            }
+            
+            QMenu::item:selected {
+                background-color: #64b5f6;
+                color: #000000;
+            }
+            
+            QToolTip {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            
+            QScrollBar:vertical {
+                background-color: #404040;
+                width: 12px;
+                border-radius: 6px;
+            }
+            
+            QScrollBar::handle:vertical {
+                background-color: #666666;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            
+            QScrollBar::handle:vertical:hover {
+                background-color: #777777;
+            }
+            
+            /* Windows-specific dark theme enforcement */
+            QApplication {
+                color-scheme: dark;
+            }
+            
+            /* Force dark theme for all child widgets */
+            * {
+                background-color: #2b2b2b;
+                color: #ffffff;
+            }
         """)
     
     # Create and show main window
