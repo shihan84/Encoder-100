@@ -3489,11 +3489,47 @@ class MainWindow(QMainWindow):
         params = output_config.get("params", "")
         
         if output_type == "srt":
-            return [
-                "--caller", destination,
-                "--streamid", "#!::r=scte/scte,m=publish",
-                "--latency", "2000"
-            ]
+            # Parse SRT URL and parameters dynamically
+            srt_params = []
+            
+            # Parse destination for host:port
+            if destination:
+                if '://' in destination:
+                    # Handle srt://host:port format
+                    url_part = destination.split('://', 1)[1]
+                    if '?' in url_part:
+                        host_port, query = url_part.split('?', 1)
+                        srt_params.extend(["--caller", host_port])
+                        
+                        # Parse query parameters
+                        for param in query.split('&'):
+                            if '=' in param:
+                                key, value = param.split('=', 1)
+                                if key == 'streamid':
+                                    srt_params.extend(["--streamid", value])
+                    else:
+                        srt_params.extend(["--caller", url_part])
+                else:
+                    # Direct host:port format
+                    srt_params.extend(["--caller", destination])
+            
+            # Add custom parameters from params field
+            if params:
+                param_list = params.split()
+                # Filter out duplicate --caller parameters
+                filtered_params = []
+                for param in param_list:
+                    if param == "--caller" and "--caller" in srt_params:
+                        # Skip duplicate --caller and its value
+                        continue
+                    elif param != "--caller" or "--caller" not in srt_params:
+                        filtered_params.append(param)
+                srt_params.extend(filtered_params)
+            else:
+                # Default parameters if none specified
+                srt_params.extend(["--latency", "2000"])
+            
+            return srt_params
         elif output_type == "udp":
             return ["--local", destination]
         elif output_type == "tcp":
@@ -3654,8 +3690,14 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"Processing failed with exit code {exit_code}")
             self.monitoring_widget.console_widget.append_error(f"❌ Processing failed with exit code {exit_code}")
     
-    def load_configuration(self):
-        """Load configuration from file"""
+    def load_configuration(self, config_dict=None):
+        """Load configuration from file or dictionary"""
+        if config_dict is not None:
+            # Load from provided dictionary
+            self.apply_configuration(config_dict)
+            return
+        
+        # Load from file dialog
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Load Configuration", "", "JSON Files (*.json)"
         )
@@ -3697,7 +3739,10 @@ class MainWindow(QMainWindow):
         if "output" in config:
             output_config = config["output"]
             self.config_widget.output_widget.type_combo.setCurrentText(output_config.get("type", "srt").title())
-            self.config_widget.output_widget.dest_edit.setText(output_config.get("destination", ""))
+            
+            # Handle both 'destination' and 'source' fields for backward compatibility
+            destination = output_config.get("destination", output_config.get("source", ""))
+            self.config_widget.output_widget.dest_edit.setText(destination)
             self.config_widget.output_widget.params_edit.setText(output_config.get("params", ""))
         
         if "service" in config:
