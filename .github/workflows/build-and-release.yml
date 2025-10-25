@@ -69,7 +69,6 @@ jobs:
 
       - name: Install system dependencies (Windows)
         if: matrix.platform == 'windows'
-        shell: pwsh
         run: |
           # Install Chocolatey if not present
           if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
@@ -99,17 +98,9 @@ jobs:
 
       - name: Build application (Windows)
         if: matrix.platform == 'windows'
-        shell: pwsh
         run: |
-          # Set timeout for Windows build
-          $timeout = 1800
-          $job = Start-Job -ScriptBlock { & .\build.bat onefile }
-          if (Wait-Job $job -Timeout $timeout) { 
-            Receive-Job $job 
-          } else { 
-            Stop-Job $job
-            echo "Build timed out or failed, continuing..."
-          }
+          # Build with timeout
+          timeout 1800 .\build.bat onefile || echo "Build timed out or failed, continuing..."
 
       - name: Create AppImage (Linux)
         if: matrix.platform == 'linux' && matrix.arch == 'x64'

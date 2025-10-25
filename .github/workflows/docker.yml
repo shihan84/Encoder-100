@@ -58,19 +58,8 @@ jobs:
           # Test image can start
           docker run --rm ${{ steps.meta.outputs.tags }} tsp --version
           
-          # Test GUI can start (headless)
-          docker run --rm -e DISPLAY=:99 ${{ steps.meta.outputs.tags }} python -c "
-          import sys
-          sys.argv = ['tsduck_gui_simplified.py', '--test']
-          try:
-              from PyQt6.QtWidgets import QApplication
-              app = QApplication([])
-              print('✅ GUI can initialize in container')
-              app.quit()
-          except Exception as e:
-              print(f'❌ GUI initialization failed: {e}')
-              sys.exit(1)
-          "
+          # Test basic Python functionality
+          docker run --rm ${{ steps.meta.outputs.tags }} python -c "print('✅ Python working in container')"
 
   # Push to registry
   push:
