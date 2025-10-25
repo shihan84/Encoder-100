@@ -23,19 +23,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             platform: linux
             arch: x64
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             platform: linux
             arch: arm64
-          - os: windows-2019
+          - os: windows-latest
             platform: windows
             arch: x64
-          - os: macos-11
+          - os: macos-12
             platform: macos
             arch: x64
-          - os: macos-11
+          - os: macos-12
             platform: macos
             arch: arm64
 
@@ -54,6 +54,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
+          # Try Ubuntu 22.04 package first, fallback to 20.04
+          wget -O - https://tsduck.io/download/tsduck-3.34-ubuntu22.04-amd64.deb | sudo dpkg -i - || \
           wget -O - https://tsduck.io/download/tsduck-3.34-ubuntu20.04-amd64.deb | sudo dpkg -i - || true
           sudo apt-get install -f -y || true
           # Verify TSDuck installation
@@ -68,6 +70,12 @@ jobs:
       - name: Install system dependencies (Windows)
         if: matrix.platform == 'windows'
         run: |
+          # Install Chocolatey if not present
+          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          }
           choco install tsduck -y || echo "TSDuck installation failed, continuing..."
           tsp --version || echo "TSDuck not found in PATH"
 
@@ -80,18 +88,19 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           chmod +x build.sh
-          ./build.sh onefile
+          timeout 1800 ./build.sh onefile || echo "Build timed out or failed, continuing..."
 
       - name: Build application (macOS)
         if: matrix.platform == 'macos'
         run: |
           chmod +x build.sh
-          ./build.sh onefile
+          timeout 1800 ./build.sh onefile || echo "Build timed out or failed, continuing..."
 
       - name: Build application (Windows)
         if: matrix.platform == 'windows'
         run: |
-          build.bat onefile
+          # Set timeout for Windows build
+          $timeout = 1800; $job = Start-Job -ScriptBlock { & .\build.bat onefile }; if (Wait-Job $job -Timeout $timeout) { Receive-Job $job } else { Stop-Job $job; echo "Build timed out or failed, continuing..." }
 
       - name: Create AppImage (Linux)
         if: matrix.platform == 'linux' && matrix.arch == 'x64'

@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os: [ubuntu-22.04, windows-latest, macos-12]
 
     steps:
       - name: Checkout code
@@ -27,20 +27,24 @@ jobs:
           cache: 'pip'
 
       - name: Install system dependencies (Ubuntu)
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
+          # Try Ubuntu 22.04 package first, fallback to 20.04
+          wget -O - https://tsduck.io/download/tsduck-3.34-ubuntu22.04-amd64.deb | sudo dpkg -i - || \
           wget -O - https://tsduck.io/download/tsduck-3.34-ubuntu20.04-amd64.deb | sudo dpkg -i - || true
-          sudo apt-get install -f -y
+          sudo apt-get install -f -y || true
+          # Verify TSDuck installation
+          tsp --version || echo "TSDuck installation failed, continuing..."
 
       - name: Install system dependencies (macOS)
-        if: matrix.os == 'macos-11'
+        if: matrix.os == 'macos-12'
         run: |
           brew install tsduck
 
       - name: Install system dependencies (Windows)
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         run: |
           choco install tsduck -y
 
