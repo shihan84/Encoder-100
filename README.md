@@ -62,7 +62,7 @@ cd Encoder-100
 pip install PyQt6 psutil
 
 # Run the application
-python3 tsduck_gui_simplified.py
+python enc100.py
 ```
 
 ### TSDuck Installation
