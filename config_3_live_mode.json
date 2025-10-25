@@ -11,5 +11,24 @@
     "source": "srt://cdn.itassist.one:8888",
     "params": "--caller cdn.itassist.one:8888 --transtype live --latency 2000"
   },
-  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O srt --caller cdn.itassist.one:8888 --transtype live --latency 2000"
+  "tsduck_command": "tsp -I hls https://cdn.itassist.one/BREAKING/NEWS/index.m3u8 -O srt --caller cdn.itassist.one:8888 --transtype live --latency 2000",
+  "service": {
+    "service_name": "SCTE-35 Stream",
+    "provider_name": "ITAssist",
+    "service_id": 1,
+    "vpid": 256,
+    "apid": 257,
+    "scte35_pid": 500,
+    "null_pid": 8191,
+    "pcr_pid": 256
+  },
+  "scte35": {
+    "ad_duration": 600,
+    "event_id": 100023,
+    "preroll_duration": 0,
+    "pmt_enabled": true,
+    "pmt_params": "",
+    "spliceinject_enabled": true,
+    "spliceinject_params": ""
+  }
 }

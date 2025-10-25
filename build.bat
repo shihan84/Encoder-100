@@ -131,7 +131,6 @@ if "%BUILD_TYPE%"=="onefile" (
     call :print_info "Creating single executable file..."
     python -m PyInstaller --onefile --windowed ^
         --name "%APP_NAME%" ^
-        --icon "assets\icon.ico" ^
         --add-data "scte35_final;scte35_final" ^
         --add-data "README.md;." ^
         --add-data "LICENSE.txt;." ^
@@ -151,7 +150,6 @@ if "%BUILD_TYPE%"=="onefile" (
     call :print_info "Creating directory distribution..."
     python -m PyInstaller --onedir --windowed ^
         --name "%APP_NAME%" ^
-        --icon "assets\icon.ico" ^
         --add-data "scte35_final;scte35_final" ^
         --add-data "README.md;." ^
         --add-data "LICENSE.txt;." ^

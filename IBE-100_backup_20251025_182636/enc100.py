@@ -3353,7 +3353,7 @@ class MainWindow(QMainWindow):
         footer_layout.addStretch()
         
         # Version info
-        version_text = QLabel("IBE-100 v1.4.0")
+        version_text = QLabel("IBE-100 v1.3.0")
         version_text.setStyleSheet("""
             QLabel {
                 color: #4CAF50;
