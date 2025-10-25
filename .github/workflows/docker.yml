@@ -60,6 +60,9 @@ jobs:
           
           # Test basic Python functionality
           docker run --rm ${{ steps.meta.outputs.tags }} python -c "print('✅ Python working in container')"
+          
+          # Test IBE-100 application
+          docker run --rm ${{ steps.meta.outputs.tags }} python -c "import enc100; print('✅ IBE-100 application ready')"
 
   # Push to registry
   push:
