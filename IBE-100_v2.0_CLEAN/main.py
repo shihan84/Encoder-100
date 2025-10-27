@@ -768,13 +768,17 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         self.start_server_btn.setEnabled(True)
         self.stop_server_btn.setEnabled(False)
         
-        # SCTE-35 monitoring
+        # SCTE-35 monitoring - file-based markers
         self.scte35_timer = QTimer()
         self.scte35_timer.timeout.connect(self.update_scte35_status)
         self.scte35_timer.start(2000)  # Update every 2 seconds
         
         # Initial update to show status immediately
         self.update_scte35_status()
+        
+        # Initialize SCTE-35 stream monitoring counter
+        self.scte35_markers_detected = 0
+        self.last_scte35_detection = None
     
     def update_metrics(self):
         """Update system metrics"""
@@ -853,17 +857,29 @@ Disk Usage:     {disk_percent}%
             latest_time = datetime.fromtimestamp(latest_file.stat().st_mtime)
             print(f"[DEBUG] Latest marker: {latest_file.name}")
             
+            # Show both file-based and stream-based markers
+            stream_detected = self.scte35_markers_detected if hasattr(self, 'scte35_markers_detected') else 0
+            stream_info = ""
+            if stream_detected > 0:
+                stream_info = f"""
+Markers Detected in Stream: {stream_detected}
+Last Detection: {self.last_scte35_detection if hasattr(self, 'last_scte35_detection') and self.last_scte35_detection else 'None'}
+"""
+            
             status = f"""
 ═══════════════════════════════════════════════════
           SCTE-35 MARKER STATUS (Real-time)
 ═══════════════════════════════════════════════════
 
+FILE-BASED MARKERS:
 Total Markers:      {len(xml_files)}
 Latest Marker:      {latest_file.name}
 Last Modified:      {latest_time.strftime('%Y-%m-%d %H:%M:%S')}
 Marker Directory:   {markers_dir.absolute()}
 
-═══════════════════════════════════════════════════
+───────────────────────────────────────────────────
+STREAM MONITORING:{stream_info}
+───────────────────────────────────────────────────
 
 [INFO] SCTE-35 monitoring active...
 [INFO] Ready to inject markers into stream
@@ -1380,7 +1396,14 @@ class MainWindow(QMainWindow):
                 
                 # Read output line by line
                 for line in process.stdout:
-                    self.monitoring_widget.append(f"[TSDuck] {line.strip()}")
+                    line_text = line.strip()
+                    self.monitoring_widget.append(f"[TSDuck] {line_text}")
+                    
+                    # Detect SCTE-35 markers in stream
+                    if any(keyword in line_text.lower() for keyword in ['splice', 'scte', 'cue', 'break', 'ad break']):
+                        self.monitoring_widget.scte35_markers_detected += 1
+                        self.monitoring_widget.last_scte35_detection = line_text
+                        self.monitoring_widget.update_scte35_status()
                 
                 process.wait()
                 self.monitoring_widget.append(f"[INFO] TSDuck process finished with code: {process.returncode}")
