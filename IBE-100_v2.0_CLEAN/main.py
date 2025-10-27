@@ -820,14 +820,14 @@ Disk Usage:     {disk_percent}%
             
             if not markers_dir.exists():
                 status = "[ERROR] No markers directory found"
-                self.scte35_monitor.setText(f"<pre style='color: #f44336;'>{status}</pre>")
+                self.scte35_monitor.setHtml(f"<pre style='color: #f44336;'>{status}</pre>")
                 return
             
             xml_files = list(markers_dir.glob("*.xml"))
             
             if not xml_files:
                 status = "[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab."
-                self.scte35_monitor.setText(f"<pre style='color: #ff9800;'>{status}</pre>")
+                self.scte35_monitor.setHtml(f"<pre style='color: #ff9800;'>{status}</pre>")
                 return
             
             # Get latest marker
@@ -851,11 +851,11 @@ Marker Directory:   {markers_dir.absolute()}
 
 ═══════════════════════════════════════════════════
 """
-            self.scte35_monitor.setText(f"<pre style='color: #4CAF50;'>{status}</pre>")
+            self.scte35_monitor.setHtml(f"<pre style='color: #4CAF50;'>{status}</pre>")
             
         except Exception as e:
             status = f"[ERROR] SCTE-35 monitoring error: {e}"
-            self.scte35_monitor.setText(f"<pre style='color: #f44336;'>{status}</pre>")
+            self.scte35_monitor.setHtml(f"<pre style='color: #f44336;'>{status}</pre>")
     
     def append(self, text):
         self.console.append(text)
