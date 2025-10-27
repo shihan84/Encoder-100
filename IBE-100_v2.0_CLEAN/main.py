@@ -586,6 +586,9 @@ class MonitoringWidget(QWidget):
     
     def __init__(self):
         super().__init__()
+        # Initialize monitoring counters early
+        self.scte35_markers_detected = 0
+        self.last_scte35_detection = None
         self.setup_ui()
         self.setup_monitoring()
     
@@ -775,10 +778,7 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         
         # Initial update to show status immediately
         self.update_scte35_status()
-        
-        # Initialize SCTE-35 stream monitoring counter
-        self.scte35_markers_detected = 0
-        self.last_scte35_detection = None
+        print("[DEBUG] SCTE-35 monitoring initialized")
     
     def update_metrics(self):
         """Update system metrics"""
