@@ -41,8 +41,8 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 ECHO.
-ECHO Launching ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.1...
-ECHO This version includes integrated web server and improved monitoring!
+ECHO Launching ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.2...
+ECHO This version includes auto-update feature and enhanced diagnostics!
 ECHO.
 ECHO ========================================================================
 ECHO.
