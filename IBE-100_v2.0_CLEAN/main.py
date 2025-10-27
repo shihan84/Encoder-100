@@ -11,7 +11,7 @@ import psutil
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 from PyQt6.QtWidgets import QPushButton, QLabel, QLineEdit, QSpinBox, QGroupBox, QScrollArea, QComboBox, QTimeEdit, QCheckBox
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QTime
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QTime, QThread
 from PyQt6.QtGui import QFont, QPixmap
 
 # Set UTF-8 encoding for Windows console
@@ -861,6 +861,46 @@ Marker Directory:   {markers_dir.absolute()}
         self.console.append(text)
 
 
+class UpdateChecker(QThread):
+    """Background thread for checking updates"""
+    update_available = pyqtSignal(str, str, str)  # version, url, notes
+    check_complete = pyqtSignal(bool)  # update available
+    
+    def __init__(self, current_version):
+        super().__init__()
+        self.current_version = current_version
+        self.api_url = "https://api.github.com/repos/shihan84/Encoder-100/releases/latest"
+        self.latest_version = None
+        self.download_url = None
+        self.release_notes = ""
+    
+    def run(self):
+        """Check for available updates"""
+        try:
+            import urllib.request
+            import json
+            
+            req = urllib.request.Request(self.api_url)
+            req.add_header('User-Agent', 'IBE-100/2.0.1')
+            
+            with urllib.request.urlopen(req, timeout=10) as response:
+                data = json.loads(response.read())
+                self.latest_version = data.get('tag_name', '')
+                self.download_url = data.get('html_url', '')
+                self.release_notes = data.get('body', 'No release notes available.')
+                
+                # Compare versions (simple string comparison for now)
+                if self.latest_version > self.current_version:
+                    self.update_available.emit(self.latest_version, self.download_url, self.release_notes)
+                    self.check_complete.emit(True)
+                else:
+                    self.check_complete.emit(False)
+                    
+        except Exception as e:
+            print(f"[INFO] Could not check for updates: {e}")
+            self.check_complete.emit(False)
+
+
 class MainWindow(QMainWindow):
     """Main Application Window"""
     
@@ -868,8 +908,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.processor = None
         self.latest_marker = None
+        self.update_checker = None
         self.setup_ui()
         self.setup_connections()
+        
+        # Check for updates 5 seconds after startup
+        QTimer.singleShot(5000, self.check_for_updates)
     
     def setup_ui(self):
         self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0")
@@ -1027,6 +1071,54 @@ class MainWindow(QMainWindow):
         self.stop_btn.clicked.connect(self.stop_processing)
         self.preview_btn.clicked.connect(self.preview_command)
         self.scte35_widget.marker_generated.connect(self.on_marker_generated)
+    
+    def check_for_updates(self):
+        """Check for available updates"""
+        if self.update_checker is None:
+            self.update_checker = UpdateChecker("2.0.1")
+            self.update_checker.update_available.connect(self.show_update_dialog)
+            self.update_checker.check_complete.connect(self.on_update_check_complete)
+        
+        if not self.update_checker.isRunning():
+            self.update_checker.start()
+    
+    def on_update_check_complete(self, update_available):
+        """Handle update check completion"""
+        if not update_available:
+            print("[INFO] Application is up to date")
+    
+    def show_update_dialog(self, version, url, notes):
+        """Show update available dialog"""
+        from PyQt6.QtWidgets import QMessageBox, QTextEdit, QPushButton
+        
+        msg = QMessageBox(self)
+        msg.setWindowTitle("🔄 Update Available")
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setText(f"<b>IBE-100 Version {version} is Available!</b>")
+        msg.setInformativeText(f"Current version: 2.0.1<br>Latest version: {version}")
+        
+        # Add release notes
+        details = QTextEdit()
+        details.setPlainText(notes[:500] if len(notes) > 500 else notes)
+        details.setReadOnly(True)
+        details.setMaximumHeight(150)
+        details.setMaximumWidth(500)
+        
+        # Custom layout for details
+        msg.layout().addWidget(details, 1, 0, 1, msg.layout().columnCount())
+        
+        # Buttons
+        download_btn = msg.addButton("Download Update", QMessageBox.ButtonRole.AcceptRole)
+        later_btn = msg.addButton("Later", QMessageBox.ButtonRole.RejectRole)
+        msg.setDefaultButton(later_btn)
+        
+        # Show dialog
+        result = msg.exec()
+        
+        if msg.clickedButton() == download_btn:
+            import webbrowser
+            webbrowser.open(url)
+            print(f"[INFO] Opened download page for version {version}")
     
     def on_marker_generated(self, xml_file: str, json_file: str):
         """Handle marker generation"""
