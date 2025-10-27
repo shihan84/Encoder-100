@@ -821,6 +821,10 @@ Disk Usage:     {disk_percent}%
     def update_scte35_status(self):
         """Update SCTE-35 monitoring status"""
         try:
+            if not hasattr(self, 'scte35_monitor'):
+                print("[DEBUG] scte35_monitor widget not created yet")
+                return
+                
             from pathlib import Path
             from datetime import datetime
             
@@ -841,8 +845,9 @@ Disk Usage:     {disk_percent}%
             
             if markers_dir is None:
                 status = "[ERROR] No markers directory found. Checked: scte35_final, ../scte35_final, and parent directories."
-                self.scte35_monitor.clear()
-                self.scte35_monitor.insertPlainText(status)
+                if self.scte35_monitor:
+                    self.scte35_monitor.clear()
+                    self.scte35_monitor.insertPlainText(status)
                 print(f"[DEBUG] Markers directory not found in any location")
                 return
             
