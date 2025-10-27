@@ -851,6 +851,7 @@ Disk Usage:     {disk_percent}%
             # Get latest marker
             latest_file = max(xml_files, key=lambda f: f.stat().st_mtime)
             latest_time = datetime.fromtimestamp(latest_file.stat().st_mtime)
+            print(f"[DEBUG] Latest marker: {latest_file.name}")
             
             status = f"""
 ═══════════════════════════════════════════════════
