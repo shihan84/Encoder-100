@@ -779,6 +779,7 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         # Initial update to show status immediately
         self.update_scte35_status()
         print("[DEBUG] SCTE-35 monitoring initialized")
+        print("[DEBUG] Tab content set, widget exists: {}".format(self.scte35_monitor is not None))
     
     def update_metrics(self):
         """Update system metrics"""
@@ -846,6 +847,8 @@ Disk Usage:     {disk_percent}%
             
             xml_files = list(markers_dir.glob("*.xml"))
             print(f"[DEBUG] Found {len(xml_files)} XML marker files")
+            print(f"[DEBUG] Widget exists: {self.scte35_monitor is not None}")
+            print(f"[DEBUG] About to set content to widget")
             
             if not xml_files:
                 status = f"""[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab.
@@ -892,7 +895,9 @@ STREAM MONITORING:{stream_info}
 
 ═══════════════════════════════════════════════════
 """
+            print(f"[DEBUG] Setting content to widget, length: {len(status)} chars")
             self.scte35_monitor.setPlainText(status)
+            print(f"[DEBUG] Content set successfully")
             
         except Exception as e:
             import traceback
