@@ -491,50 +491,65 @@ class SCTE35Widget(QWidget):
             json_path = markers_dir / json_filename
             
             # Generate XML marker based on cue type
+            # TSDuck requires <tsduck> root with <splice_information_table>
             if cue_type == "Pre-roll (Program Transition)":
                 xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<spliceInfoSection protocolVersion="0" ptsAdjustment="0" tier="4095">
-    <spliceInsert spliceEventId="{event_id}" 
-                  spliceEventCancelIndicator="false" 
-                  outOfNetworkIndicator="false" 
-                  spliceImmediateFlag="false">
-        <program><spliceTime ptsTime="{preroll * 90000}"/></program>
-        <breakDuration autoReturn="true">
-            <duration>{ad_duration * 90000}</duration>
-        </breakDuration>
-    </spliceInsert>
-</spliceInfoSection>'''
+<tsduck>
+    <splice_information_table protocol_version="0" pts_adjustment="0" tier="0xFFF">
+        <splice_insert splice_event_id="{event_id}" 
+                      splice_event_cancel="false" 
+                      out_of_network="true" 
+                      splice_immediate="false" 
+                      pts_time="{preroll * 90000}" 
+                      unique_program_id="1" 
+                      avail_num="1" 
+                      avails_expected="1">
+            <break_duration auto_return="true" duration="{ad_duration * 90000}" />
+        </splice_insert>
+    </splice_information_table>
+</tsduck>'''
             elif cue_type == "CUE-OUT (Ad Break Start)":
                 xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<spliceInfoSection protocolVersion="0" ptsAdjustment="0" tier="4095">
-    <spliceInsert spliceEventId="{event_id}" 
-                  spliceEventCancelIndicator="false" 
-                  outOfNetworkIndicator="true" 
-                  spliceImmediateFlag="false">
-        <program><spliceTime ptsTime="0"/></program>
-        <breakDuration autoReturn="false">
-            <duration>{ad_duration * 90000}</duration>
-        </breakDuration>
-    </spliceInsert>
-</spliceInfoSection>'''
+<tsduck>
+    <splice_information_table protocol_version="0" pts_adjustment="0" tier="0xFFF">
+        <splice_insert splice_event_id="{event_id}" 
+                      splice_event_cancel="false" 
+                      out_of_network="true" 
+                      splice_immediate="false" 
+                      pts_time="0" 
+                      unique_program_id="1" 
+                      avail_num="1" 
+                      avails_expected="1">
+            <break_duration auto_return="false" duration="{ad_duration * 90000}" />
+        </splice_insert>
+    </splice_information_table>
+</tsduck>'''
             elif cue_type == "CUE-IN (Ad Break End)":
                 xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<spliceInfoSection protocolVersion="0" ptsAdjustment="0" tier="4095">
-    <spliceInsert spliceEventId="{event_id}" 
-                  spliceEventCancelIndicator="false" 
-                  outOfNetworkIndicator="false" 
-                  spliceImmediateFlag="true">
-        <program><spliceTime ptsTime="0"/></program>
-    </spliceInsert>
-</spliceInfoSection>'''
+<tsduck>
+    <splice_information_table protocol_version="0" pts_adjustment="0" tier="0xFFF">
+        <splice_insert splice_event_id="{event_id}" 
+                      splice_event_cancel="false" 
+                      out_of_network="false" 
+                      splice_immediate="true" 
+                      pts_time="0" 
+                      unique_program_id="1" 
+                      avail_num="1" 
+                      avails_expected="1">
+            <break_duration auto_return="true" duration="0" />
+        </splice_insert>
+    </splice_information_table>
+</tsduck>'''
             else:  # Time Signal
                 xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<spliceInfoSection protocolVersion="0" ptsAdjustment="0" tier="4095">
-    <spliceTimeSignal spliceEventId="{event_id}" 
-                      spliceEventCancelIndicator="false">
-        <spliceTime ptsTime="0"/>
-    </spliceTimeSignal>
-</spliceInfoSection>'''
+<tsduck>
+    <splice_information_table protocol_version="0" pts_adjustment="0" tier="0xFFF">
+        <splice_time_signal splice_event_id="{event_id}" 
+                           splice_event_cancel="false">
+            <splice_time pts_time="0" />
+        </splice_time_signal>
+    </splice_information_table>
+</tsduck>'''
             
             # Generate JSON metadata
             schedule_str = schedule_time.toString("HH:mm:ss") if schedule_time and not immediate else "Immediate"
@@ -723,7 +738,8 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
                 ["python", server_script],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd=path
+                cwd=path,
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
             )
             
             self.web_server_status.setText(f"✅ Web Server: Running on http://localhost:{port}")
@@ -949,7 +965,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(company_label)
         
         # Right side - Version
-        version_label = QLabel("IBE-100 v2.0")
+        version_label = QLabel("IBE-100 v2.0.1")
         version_label.setStyleSheet("color: #4CAF50; font-size: 11px; font-weight: bold;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         footer_layout.addWidget(version_label)
@@ -1083,32 +1099,79 @@ class MainWindow(QMainWindow):
         input_plugin = input_plugin_map.get(input_type, "hls")
         
         # Start building command
-        command = [
-            TSDUCK_PATH,
-            "-I", input_plugin, input_url,
-            # SDT Plugin - Service Description Table
-            "-P", "sdt",
+        command = [TSDUCK_PATH]
+        
+        # For SRT input, we need to parse the URL to extract host, port, and streamid
+        if input_type == "SRT (Secure Reliable Transport)":
+            # Parse SRT URL: srt://host:port?streamid=...
+            # Based on working implementation from old app (enc100.py)
+            try:
+                # Remove srt:// prefix to get host:port?streamid=...
+                clean_url = input_url.replace("srt://", "").replace("srt:", "")
+                
+                # Split into host:port and streamid
+                if "?" in clean_url:
+                    host_port = clean_url.split("?")[0]
+                    query_part = clean_url.split("?")[1]
+                    
+                    # Extract streamid if present
+                    streamid_param = None
+                    if "streamid=" in query_part:
+                        streamid_param = query_part.split("streamid=")[1]
+                    
+                    # Build SRT command like old app: -I srt host:port --transtype live --messageapi --latency 2000
+                    command.extend(["-I", "srt", host_port, 
+                                   "--transtype", "live",
+                                   "--messageapi",
+                                   "--latency", "2000"])
+                    
+                    # Add streamid if present
+                    if streamid_param:
+                        command.extend(["--streamid", streamid_param])
+                else:
+                    # No streamid, just host:port
+                    command.extend(["-I", "srt", clean_url,
+                                   "--transtype", "live",
+                                   "--messageapi",
+                                   "--latency", "2000"])
+            except Exception as e:
+                # Fallback - use input as-is with SRT parameters
+                clean_url = input_url.replace("srt://", "").replace("srt:", "")
+                command.extend(["-I", "srt", clean_url,
+                               "--transtype", "live",
+                               "--messageapi",
+                               "--latency", "2000"])
+        else:
+            command.extend(["-I", input_plugin, input_url])
+        
+        # SDT Plugin - Service Description Table
+        command.extend(["-P", "sdt",
             "--service", str(service_id),
             "--name", service_name,
-            "--provider", provider_name,
-            # Remap PIDs
-            "-P", "remap", f"211={vpid}", f"221={apid}",
-            # PMT Plugin - Program Map Table
-            "-P", "pmt",
+            "--provider", provider_name])
+        
+        # Smart PID Remapping - only remap if needed to avoid conflicts
+        # For SRT input, PIDs may already be correct, so check first
+        # Skip remapping for SRT input to avoid PID conflict errors
+        if input_type != "SRT (Secure Reliable Transport)":
+            # Only remap for HLS and other input types that typically use PIDs 211/221
+            command.extend(["-P", "remap", f"211={vpid}", f"221={apid}"])
+        
+        # PMT Plugin - Program Map Table
+        command.extend(["-P", "pmt",
             "--service", str(service_id),
             "--add-pid", f"{vpid}/0x1b",  # Video PID
             "--add-pid", f"{apid}/0x0f",  # Audio PID
-            "--add-pid", f"{scte35_pid}/0x86",  # SCTE-35 PID
-            # SpliceInject Plugin
-            "-P", "spliceinject",
+            "--add-pid", f"{scte35_pid}/0x86"])  # SCTE-35 PID
+        
+        # SpliceInject Plugin
+        command.extend(["-P", "spliceinject",
             "--pid", str(scte35_pid),
             "--pts-pid", str(vpid),
             "--files", marker,
             "--inject-count", str(inject_count),
             "--inject-interval", str(inject_interval),
-            "--start-delay", str(start_delay),
-            # Output based on type
-        ]
+            "--start-delay", str(start_delay)])
         
         # Add output based on selected output type
         if output_type == "SRT":
@@ -1195,7 +1258,8 @@ class MainWindow(QMainWindow):
                     stderr=subprocess.STDOUT,
                     text=True,
                     bufsize=1,
-                    universal_newlines=True
+                    universal_newlines=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
                 )
                 
                 self.processor = process
