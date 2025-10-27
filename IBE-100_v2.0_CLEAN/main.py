@@ -841,7 +841,8 @@ Disk Usage:     {disk_percent}%
             
             if markers_dir is None:
                 status = "[ERROR] No markers directory found. Checked: scte35_final, ../scte35_final, and parent directories."
-                self.scte35_monitor.setPlainText(status)
+                self.scte35_monitor.clear()
+                self.scte35_monitor.insertPlainText(status)
                 print(f"[DEBUG] Markers directory not found in any location")
                 return
             
@@ -856,7 +857,8 @@ Disk Usage:     {disk_percent}%
 Marker Directory: {markers_dir}
 Available Paths: {list(markers_dir.glob('*'))}
 """
-                self.scte35_monitor.setPlainText(status)
+                self.scte35_monitor.clear()
+                self.scte35_monitor.insertPlainText(status)
                 print(f"[DEBUG] No XML files found in {markers_dir}")
                 print(f"[DEBUG] Directory contents: {list(markers_dir.glob('*'))}")
                 return
@@ -896,8 +898,14 @@ STREAM MONITORING:{stream_info}
 ═══════════════════════════════════════════════════
 """
             print(f"[DEBUG] Setting content to widget, length: {len(status)} chars")
-            self.scte35_monitor.setPlainText(status)
+            print(f"[DEBUG] Content preview: {status[:200]}...")
+            self.scte35_monitor.clear()
+            self.scte35_monitor.insertPlainText(status)
             print(f"[DEBUG] Content set successfully")
+            
+            # Force refresh the widget
+            self.scte35_monitor.repaint()
+            self.scte35_monitor.update()
             
         except Exception as e:
             import traceback
