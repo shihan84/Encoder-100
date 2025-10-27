@@ -881,7 +881,7 @@ class UpdateChecker(QThread):
             import json
             
             req = urllib.request.Request(self.api_url)
-            req.add_header('User-Agent', 'IBE-100/2.0.1')
+            req.add_header('User-Agent', 'IBE-100/2.0.2')
             
             with urllib.request.urlopen(req, timeout=10) as response:
                 data = json.loads(response.read())
@@ -916,7 +916,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(5000, self.check_for_updates)
     
     def setup_ui(self):
-        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0")
+        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.2")
         self.setMinimumSize(800, 600)
         
         # Central widget
@@ -1009,7 +1009,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(company_label)
         
         # Right side - Version
-        version_label = QLabel("IBE-100 v2.0.1")
+        version_label = QLabel("IBE-100 v2.0.2")
         version_label.setStyleSheet("color: #4CAF50; font-size: 11px; font-weight: bold;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         footer_layout.addWidget(version_label)
@@ -1075,7 +1075,7 @@ class MainWindow(QMainWindow):
     def check_for_updates(self):
         """Check for available updates"""
         if self.update_checker is None:
-            self.update_checker = UpdateChecker("2.0.1")
+            self.update_checker = UpdateChecker("2.0.2")
             self.update_checker.update_available.connect(self.show_update_dialog)
             self.update_checker.check_complete.connect(self.on_update_check_complete)
         
@@ -1095,7 +1095,7 @@ class MainWindow(QMainWindow):
         msg.setWindowTitle("🔄 Update Available")
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setText(f"<b>IBE-100 Version {version} is Available!</b>")
-        msg.setInformativeText(f"Current version: 2.0.1<br>Latest version: {version}")
+        msg.setInformativeText(f"Current version: 2.0.2<br>Latest version: {version}")
         
         # Add release notes
         details = QTextEdit()
