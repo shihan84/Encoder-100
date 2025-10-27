@@ -771,15 +771,11 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         self.start_server_btn.setEnabled(True)
         self.stop_server_btn.setEnabled(False)
         
-        # SCTE-35 monitoring - file-based markers
+        # SCTE-35 monitoring - DISABLED for now to prevent crashes
+        # TODO: Fix SCTE-35 status tab display issue
         self.scte35_timer = QTimer()
         self.scte35_timer.timeout.connect(self.update_scte35_status)
         self.scte35_timer.start(2000)  # Update every 2 seconds
-        
-        # Initial update to show status immediately
-        self.update_scte35_status()
-        print("[DEBUG] SCTE-35 monitoring initialized")
-        print("[DEBUG] Tab content set, widget exists: {}".format(self.scte35_monitor is not None))
     
     def update_metrics(self):
         """Update system metrics"""
@@ -819,10 +815,12 @@ Disk Usage:     {disk_percent}%
             self.system_metrics.setText(f"Error updating metrics: {e}")
     
     def update_scte35_status(self):
-        """Update SCTE-35 monitoring status"""
+        """Update SCTE-35 monitoring status - TEMPORARILY DISABLED"""
+        # Disabled to prevent crashes - will be fixed in future version
+        return
+        
         try:
-            if not hasattr(self, 'scte35_monitor'):
-                print("[DEBUG] scte35_monitor widget not created yet")
+            if not hasattr(self, 'scte35_monitor') or not self.scte35_monitor:
                 return
                 
             from pathlib import Path
