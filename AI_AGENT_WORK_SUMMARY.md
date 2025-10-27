@@ -28,6 +28,21 @@
 - [x] Fixed PID conflict handling (smart remapping - skips for SRT)
 - [x] Fixed console window visibility (hidden using `CREATE_NO_WINDOW`)
 
+#### Latest Fixes (v1.5.1) - October 2025
+- [x] **Error Code 1 Troubleshooting System** - Added comprehensive diagnostic tools
+  - Created `diagnose_system.bat` for Windows batch diagnostics
+  - Created `diagnose_error.py` for detailed Python diagnostics
+  - Created `check_system_requirements.py` for requirements checking
+  - Enhanced `launch_ibe100_v1.5.1.bat` with pre-flight TSDuck checks
+- [x] **Deployment Documentation** - Created comprehensive guides
+  - `DEPLOYMENT_TROUBLESHOOTING.md` - Complete troubleshooting guide
+  - `dist/IBE-100_v1.5.1/README_DEPLOYMENT.md` - Deployment instructions
+  - `ERROR_CODE_1_SOLUTION_SUMMARY.md` - Solution summary
+- [x] **TSDuck Detection** - Added automatic validation
+  - Pre-launch checks for TSDuck installation
+  - PATH validation and error messages
+  - User-friendly warnings and solutions
+
 #### SCTE-35 Features
 - [x] Manual cue generation (Pre-roll, CUE-OUT, CUE-IN, Time Signal)
 - [x] Scheduling support (Immediate or scheduled)
@@ -347,4 +362,5 @@ def build_command(self):
 **Status**: ✅ Production Ready  
 **Version**: 2.0.1  
 **Last AI Agent Work**: January 2025
+
 

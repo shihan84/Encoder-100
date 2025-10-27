@@ -7,16 +7,30 @@
 ## 📦 Installation
 
 ### Requirements
-- Windows 10/11
+- Windows 10/11 (64-bit)
 - TSDuck installed in standard location (C:\Program Files\TSDuck\bin\)
-- 4GB RAM minimum
+- 4GB RAM minimum (8GB recommended)
 - Network connection for streaming
 
+### Quick Prerequisite Check
+**Before deploying to a new system, run:**
+```cmd
+check_prerequisites.bat
+```
+
+This will verify:
+- ✅ TSDuck installation
+- ✅ Required plugins
+- ✅ Network connectivity
+- ✅ File permissions
+- ✅ System resources
+
 ### Installation Steps
-1. **Extract** this folder to your desired location
-2. **Launch** `IBE-100.exe`
-3. **Configure** your stream settings
-4. **Start** processing
+1. **Check prerequisites** (recommended): Run `check_prerequisites.bat`
+2. **Extract** this folder to your desired location
+3. **Launch** using: `launch_ibe100_v2.0.1.bat` or double-click `IBE-100.exe`
+4. **Configure** your stream settings
+5. **Start** processing
 
 ## 🚀 Quick Start
 
@@ -96,8 +110,15 @@ Then access at `http://localhost:8000`
 ## 📚 Documentation
 
 - **RELEASE_NOTES_v2.0.0.md** - Complete release notes
+- **PRE_REQUISITE_CHECKLIST.md** - Pre-deployment requirements
+- **DEPLOYMENT_TROUBLESHOOTING_v2.0.1.md** - Troubleshooting guide
 - **test_player.html** - Browser test player
 - **serve_hls.py** - Standalone web server
+
+### Diagnostic Tools
+- **check_prerequisites.bat** - Pre-deployment verification
+- **diagnose_system.bat** - System diagnostics
+- **launch_ibe100_v2.0.1.bat** - Launch with pre-flight checks
 
 ## 🔧 Configuration
 
@@ -114,9 +135,23 @@ Then access at `http://localhost:8000`
 
 ## 🆘 Troubleshooting
 
+### Pre-Deployment Checks
+**Run these diagnostic tools:**
+1. `check_prerequisites.bat` - Verify all prerequisites
+2. `diagnose_system.bat` - Detailed system diagnostics
+
 ### TSDuck Not Found
 - Install TSDuck: https://tsduck.io/download/
-- Or specify path manually
+- Add to PATH: `set PATH=%PATH%;C:\Program Files\TSDuck\bin`
+- Verify: `tsp --version` works
+
+### Error Code 1 (Most Common)
+**Cause:** TSDuck not installed or not in PATH  
+**Solution:**
+1. Install TSDuck from official website
+2. Verify: `tsp --version`
+3. Add to PATH if needed
+4. See `DEPLOYMENT_TROUBLESHOOTING_v2.0.1.md` for details
 
 ### CORS Errors
 - Enable "Enable CORS Headers" in configuration
@@ -130,6 +165,7 @@ Then access at `http://localhost:8000`
 - Check input URL
 - Verify network connection
 - Check console for errors
+- Run diagnostic tools for detailed analysis
 
 ## 📞 Support
 
