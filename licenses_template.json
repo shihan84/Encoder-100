@@ -1,0 +1,29 @@
+{
+  "TRIAL2024DEMO001": {
+    "user": "Demo User",
+    "email": "demo@example.com",
+    "tier": "trial",
+    "expiry": "2024-12-31",
+    "active": true,
+    "created": "2024-01-15",
+    "restrictions": {
+      "max_days": 7,
+      "session_hours": 1,
+      "features": ["basic_streaming", "limited_markers"]
+    }
+  },
+  "UNLIMITED2024KARTIK": {
+    "user": "Kartik",
+    "email": "kartik@example.com",
+    "tier": "unlimited",
+    "expiry": "2099-12-31",
+    "active": true,
+    "created": "2024-01-15",
+    "restrictions": {
+      "max_days": null,
+      "session_hours": null,
+      "features": ["all_features"]
+    }
+  }
+}
+
