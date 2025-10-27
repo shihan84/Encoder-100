@@ -772,6 +772,9 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         self.scte35_timer = QTimer()
         self.scte35_timer.timeout.connect(self.update_scte35_status)
         self.scte35_timer.start(2000)  # Update every 2 seconds
+        
+        # Initial update to show status immediately
+        self.update_scte35_status()
     
     def update_metrics(self):
         """Update system metrics"""
