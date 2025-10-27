@@ -848,8 +848,14 @@ Disk Usage:     {disk_percent}%
             print(f"[DEBUG] Found {len(xml_files)} XML marker files")
             
             if not xml_files:
-                status = "[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab."
+                status = f"""[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab.
+
+Marker Directory: {markers_dir}
+Available Paths: {list(markers_dir.glob('*'))}
+"""
                 self.scte35_monitor.setPlainText(status)
+                print(f"[DEBUG] No XML files found in {markers_dir}")
+                print(f"[DEBUG] Directory contents: {list(markers_dir.glob('*'))}")
                 return
             
             # Get latest marker
@@ -889,11 +895,16 @@ STREAM MONITORING:{stream_info}
             self.scte35_monitor.setPlainText(status)
             
         except Exception as e:
-            status = f"[ERROR] SCTE-35 monitoring error: {e}\n\nTraceback will be shown in console."
-            self.scte35_monitor.setPlainText(status)
             import traceback
+            error_msg = f"""[ERROR] SCTE-35 monitoring error: {e}
+
+Working Directory: {os.getcwd()}
+Error Type: {type(e).__name__}
+"""
+            self.scte35_monitor.setPlainText(error_msg)
             print(f"[ERROR] SCTE-35 Status Error: {e}")
             traceback.print_exc()
+            print(f"[DEBUG] Current working directory: {os.getcwd()}")
     
     def append(self, text):
         self.console.append(text)
