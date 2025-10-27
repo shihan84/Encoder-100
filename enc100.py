@@ -261,34 +261,11 @@ class OutputWidget(QWidget):
         }
 
 
-class SCTE35Widget(QWidget):
-    """SCTE-35 configuration widget with sub-tabs"""
-    
-    def __init__(self):
-        super().__init__()
-        self.setup_ui()
-        
-    def setup_ui(self):
-        main_layout = QVBoxLayout()
-        
-        # Title
-        title = QLabel("🎬 SCTE-35 Configuration")
-        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #4CAF50; margin: 10px;")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(title)
-        
-        # Distributor specifications info
-        info_label = QLabel("📺 DISTRIBUTOR SPECIFICATIONS: HD 1920x1080, H.264, AAC-LC, SCTE-35 PID 500")
-        info_label.setStyleSheet("color: #4CAF50; font-size: 12px; margin: 5px; background-color: #2a2a2a; padding: 8px; border-radius: 4px;")
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(info_label)
-        
-        # Create sub-tab widget
-        self.sub_tabs = QTabWidget()
-        
-        # Service & PIDs Tab with Scroll Area
-        service_tab = QWidget()
-        scroll_area = QScrollArea()
+# SCTE35Widget REMOVED - Using dedicated Professional SCTE-35 tab instead (see lines 3464-3474)
+# All orphaned code from the removed SCTE35Widget has been cleaned up
+
+
+class ConfigurationWidget(QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
@@ -614,15 +591,43 @@ class SCTE35Widget(QWidget):
         markers_group = QGroupBox("Available SCTE-35 Markers")
         markers_content = QVBoxLayout()
         
-        markers_text = QLabel("""
-• cue_out_10021.xml - Ad break start (600s duration)
-• cue_in_10022.xml - Return to program  
-• preroll_10023.xml - Scheduled ad (600s duration)
-• crash_out_10024.xml - Emergency break (30s duration)
+        # Create scroll area for markers
+        markers_scroll = QScrollArea()
+        markers_scroll.setWidgetResizable(True)
+        markers_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        markers_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        markers_scroll.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: #2a2a2a;
+            }
+            QScrollBar:vertical {
+                background-color: #3a3a3a;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #4CAF50;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #45a049;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
         """)
-        markers_text.setStyleSheet("color: #888; font-size: 12px; padding: 15px; background-color: #2a2a2a; border-radius: 5px; line-height: 1.6;")
-        markers_text.setWordWrap(True)
-        markers_content.addWidget(markers_text)
+        
+        # Create markers container
+        markers_container = QWidget()
+        markers_container_layout = QVBoxLayout(markers_container)
+        
+        # Load actual markers dynamically
+        self.load_available_markers(markers_container_layout)
+        
+        markers_scroll.setWidget(markers_container)
+        markers_content.addWidget(markers_scroll)
         
         markers_group.setLayout(markers_content)
         markers_layout.addWidget(markers_group)
@@ -636,6 +641,164 @@ class SCTE35Widget(QWidget):
         
         self.setLayout(main_layout)
     
+    def load_available_markers(self, layout):
+        """Load and display available SCTE-35 markers dynamically"""
+        import os
+        import json
+        from pathlib import Path
+        from datetime import datetime
+        
+        # Check for scte35_final directory in multiple possible locations
+        possible_paths = [
+            Path("scte35_final"),
+            Path("dist/scte35_final"),
+            Path("dist/IBE-100_v1.4.1/scte35_final"),
+            Path("../scte35_final"),
+            Path("../../scte35_final")
+        ]
+        
+        markers_dir = None
+        for path in possible_paths:
+            if path.exists():
+                markers_dir = path
+                break
+        
+        if markers_dir is None:
+            # Debug information
+            current_dir = Path.cwd()
+            debug_info = f"Current directory: {current_dir}\n"
+            debug_info += f"Checked paths: {[str(p) for p in possible_paths]}\n"
+            debug_info += "No SCTE-35 markers found. Generate markers using the Professional SCTE-35 tab."
+            
+            no_markers_label = QLabel(debug_info)
+            no_markers_label.setStyleSheet("color: #888; font-size: 12px; padding: 15px; background-color: #2a2a2a; border-radius: 5px; line-height: 1.6;")
+            no_markers_label.setWordWrap(True)
+            layout.addWidget(no_markers_label)
+            return
+        
+        # Get all XML marker files
+        xml_files = list(markers_dir.glob("*.xml"))
+        if not xml_files:
+            no_markers_label = QLabel("No SCTE-35 XML markers found in scte35_final directory.")
+            no_markers_label.setStyleSheet("color: #888; font-size: 12px; padding: 15px; background-color: #2a2a2a; border-radius: 5px; line-height: 1.6;")
+            no_markers_label.setWordWrap(True)
+            layout.addWidget(no_markers_label)
+            return
+        
+        # Group markers by type
+        marker_groups = {}
+        for xml_file in sorted(xml_files):
+            marker_name = xml_file.stem
+            marker_type = marker_name.split('_')[0] if '_' in marker_name else 'unknown'
+            
+            if marker_type not in marker_groups:
+                marker_groups[marker_type] = []
+            marker_groups[marker_type].append(xml_file)
+        
+        # Display markers by type
+        for marker_type, files in marker_groups.items():
+            # Create group for this marker type
+            type_group = QGroupBox(f"{marker_type.title()} Markers ({len(files)} files)")
+            type_group.setStyleSheet("""
+                QGroupBox {
+                    font-weight: bold;
+                    color: #4CAF50;
+                    border: 2px solid #4CAF50;
+                    border-radius: 8px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px 0 5px;
+                }
+            """)
+            type_layout = QVBoxLayout()
+            
+            for xml_file in files:
+                # Create marker item
+                marker_item = QWidget()
+                marker_item.setStyleSheet("""
+                    QWidget {
+                        background-color: #3a3a3a;
+                        border: 1px solid #555;
+                        border-radius: 5px;
+                        margin: 2px;
+                    }
+                """)
+                marker_item_layout = QHBoxLayout()
+                
+                # Marker info
+                marker_info = QLabel(f"📄 {xml_file.name}")
+                marker_info.setStyleSheet("color: white; font-size: 12px; padding: 8px;")
+                marker_info.setWordWrap(True)
+                marker_item_layout.addWidget(marker_info)
+                
+                # File size and date
+                file_size = xml_file.stat().st_size
+                file_date = datetime.fromtimestamp(xml_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+                size_info = QLabel(f"Size: {file_size} bytes\nDate: {file_date}")
+                size_info.setStyleSheet("color: #888; font-size: 10px; padding: 8px;")
+                size_info.setAlignment(Qt.AlignmentFlag.AlignRight)
+                marker_item_layout.addWidget(size_info)
+                
+                # Try to load JSON data if available
+                json_file = xml_file.with_suffix('.json')
+                if json_file.exists():
+                    try:
+                        with open(json_file, 'r') as f:
+                            data = json.load(f)
+                            if 'scte35_marker' in data:
+                                marker_data = data['scte35_marker']
+                                details = f"Event ID: {marker_data.get('event_id', 'N/A')}\n"
+                                if 'preroll_seconds' in marker_data:
+                                    details += f"Pre-roll: {marker_data['preroll_seconds']}s\n"
+                                if 'ad_duration_seconds' in marker_data:
+                                    details += f"Duration: {marker_data['ad_duration_seconds']}s"
+                                
+                                details_label = QLabel(details)
+                                details_label.setStyleSheet("color: #4CAF50; font-size: 10px; padding: 8px;")
+                                marker_item_layout.addWidget(details_label)
+                    except Exception as e:
+                        print(f"Error loading JSON for {json_file}: {e}")
+                
+                marker_item.setLayout(marker_item_layout)
+                type_layout.addWidget(marker_item)
+            
+            type_group.setLayout(type_layout)
+            layout.addWidget(type_group)
+        
+        # Add refresh button
+        refresh_btn = QPushButton("🔄 Refresh Markers")
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                font-weight: bold;
+                padding: 8px 16px;
+                border-radius: 5px;
+                border: none;
+                margin: 10px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        refresh_btn.clicked.connect(lambda: self.refresh_markers(layout))
+        layout.addWidget(refresh_btn)
+    
+    def refresh_markers(self, layout):
+        """Refresh the markers display"""
+        # Clear existing widgets
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        
+        # Reload markers
+        self.load_available_markers(layout)
+
     def get_config(self) -> Dict[str, Any]:
         """Get SCTE-35 configuration"""
         return {
@@ -708,9 +871,7 @@ class ConfigurationWidget(QWidget):
         self.service_widget = ServiceConfigWidget()
         self.config_tabs.addTab(self.service_widget, "📺 Service")
         
-        # SCTE-35 Configuration
-        self.scte35_widget = SCTE35Widget()
-        self.config_tabs.addTab(self.scte35_widget, "🎬 SCTE-35")
+        # SCTE-35 Configuration removed - using dedicated Professional SCTE-35 tab instead
         
         # TSDuck Configuration
         self.tsduck_widget = TSDuckConfigWidget()
@@ -729,7 +890,6 @@ class ConfigurationWidget(QWidget):
             "input": self.input_widget.get_config(),
             "output": self.output_widget.get_config(),
             "service": self.service_widget.get_config(),
-            "scte35": self.scte35_widget.get_config(),
             "tsduck": self.tsduck_widget.get_config()
         }
 
@@ -3228,6 +3388,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.processor = None
+        self.latest_generated_marker = None  # Store the latest generated marker
         self.setup_ui()
         self.setup_connections()
         
@@ -3282,6 +3443,9 @@ class MainWindow(QMainWindow):
             from professional_scte35_widget import ProfessionalSCTE35Widget
             self.scte35_widget = ProfessionalSCTE35Widget()
             self.tab_widget.addTab(self.scte35_widget, "[TOOL] SCTE-35 Professional")
+            # Connect signal immediately after widget creation
+            self.scte35_widget.marker_generated.connect(self.on_marker_generated)
+            print("[DEBUG] Professional SCTE-35 widget created and signal connected")
         except ImportError as e:
             print(f"[WARNING] Professional SCTE-35 widget not available: {e}")
             self.scte35_widget = None
@@ -3314,6 +3478,10 @@ class MainWindow(QMainWindow):
         self.load_config_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; }")
         self.load_config_btn.clicked.connect(self.load_configuration)
         
+        self.preview_cmd_btn = QPushButton("🔍 Preview TSDuck Command")
+        self.preview_cmd_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; padding: 8px; }")
+        self.preview_cmd_btn.clicked.connect(self.preview_command)
+        
         self.save_config_btn = QPushButton("💾 Save Config")
         self.save_config_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; padding: 8px; }")
         self.save_config_btn.clicked.connect(self.save_configuration)
@@ -3322,6 +3490,7 @@ class MainWindow(QMainWindow):
         control_layout.addWidget(self.stop_btn)
         control_layout.addWidget(self.kill_btn)
         control_layout.addWidget(self.load_config_btn)
+        control_layout.addWidget(self.preview_cmd_btn)
         control_layout.addWidget(self.save_config_btn)
         control_layout.addStretch()
         
@@ -3353,7 +3522,7 @@ class MainWindow(QMainWindow):
         footer_layout.addStretch()
         
         # Version info
-        version_text = QLabel("IBE-100 v1.4.0")
+        version_text = QLabel("IBE-100 v1.6.0")
         version_text.setStyleSheet("""
             QLabel {
                 color: #4CAF50;
@@ -3377,7 +3546,32 @@ class MainWindow(QMainWindow):
         
     def setup_connections(self):
         """Setup signal connections"""
-        pass
+        # Connect Professional SCTE-35 widget signals
+        if hasattr(self, 'scte35_widget') and self.scte35_widget:
+            self.scte35_widget.marker_generated.connect(self.on_marker_generated)
+    
+    def on_marker_generated(self, xml_file: str, json_file: str):
+        """Handle marker generated from Professional SCTE-35 widget"""
+        print(f"[INFO] New marker generated: {xml_file}")
+        print(f"[DEBUG] Signal received - storing marker: {xml_file}")
+        # Store the latest generated marker for TSDuck command
+        # Use relative path from project root
+        if xml_file.startswith("scte35_final/"):
+            self.latest_generated_marker = xml_file
+        else:
+            # If absolute path, extract relative path
+            import os
+            if os.path.isabs(xml_file):
+                # Find scte35_final in the path
+                parts = xml_file.replace("\\", "/").split("/")
+                try:
+                    idx = parts.index("scte35_final")
+                    self.latest_generated_marker = "/".join(parts[idx:])
+                except ValueError:
+                    self.latest_generated_marker = xml_file
+            else:
+                self.latest_generated_marker = xml_file
+        print(f"[DEBUG] latest_generated_marker set to: {self.latest_generated_marker}")
     
     def find_tsp_binary(self) -> str:
         """Find TSDuck tsp binary automatically"""
@@ -3535,13 +3729,89 @@ class MainWindow(QMainWindow):
             # Inject SCTE-35 markers
             "-P", "spliceinject", "--pid", str(service_config["scte35_pid"]), 
             "--pts-pid", str(service_config["vpid"]),
-            "--files", "scte35_final/preroll_10023.xml",
+            "--files", self.get_latest_scte35_marker(),
             "--inject-count", "1", "--inject-interval", "1000", "--start-delay", "2000",
             # Output configuration
             "-O", output_config["type"].lower(),
             *self.get_output_params(output_config)
         ])
         return command
+    
+    def get_latest_scte35_marker(self) -> str:
+        """Get the latest generated SCTE-35 marker file"""
+        import os
+        from pathlib import Path
+        from datetime import datetime
+        
+        print(f"[DEBUG] get_latest_scte35_marker called")
+        print(f"[DEBUG] Current working directory: {Path.cwd()}")
+        
+        # ALWAYS use dynamic detection to find the latest marker file
+        # This ensures we use the most recently generated marker
+        
+        # Get absolute path to scte35_final directory
+        # This handles both development and production scenarios
+        script_dir = Path(__file__).parent if '__file__' in dir() else Path.cwd()
+        
+        # Try multiple possible locations relative to various starting points
+        possible_paths = []
+        
+        # Current directory
+        possible_paths.extend([
+            Path("scte35_final"),
+            Path("scte35_final/").absolute(),
+        ])
+        
+        # Relative to script
+        possible_paths.extend([
+            script_dir / "scte35_final",
+            script_dir.parent / "scte35_final",
+            script_dir.parent.parent / "scte35_final",
+        ])
+        
+        # Dist directories
+        for version in ["v1.4.1", "v1.4.2", "v1.4.3", "v1.4.4", "v1.4.5", "v1.5.0"]:
+            possible_paths.extend([
+                Path(f"dist/IBE-100_{version}/scte35_final"),
+                script_dir / f"dist/IBE-100_{version}/scte35_final",
+            ])
+        
+        markers_dir = None
+        for path in possible_paths:
+            abs_path = path.resolve() if path.is_absolute() else Path.cwd() / path
+            if abs_path.exists():
+                markers_dir = abs_path
+                print(f"[DEBUG] Found markers directory: {markers_dir}")
+                break
+        
+        if markers_dir is None:
+            print("[ERROR] No markers directory found!")
+            print(f"[DEBUG] Tried paths: {possible_paths}")
+            # Return a clear error message instead of hardcoded fallback
+            return "ERROR: No scte35_final directory found. Please generate a marker from the SCTE-35 Professional tab first."
+        
+        # Find ALL XML marker files (not just preroll)
+        xml_files = list(markers_dir.glob("*.xml"))
+        print(f"[DEBUG] Found {len(xml_files)} XML files in {markers_dir}")
+        print(f"[DEBUG] Files: {[f.name for f in xml_files]}")
+        
+        if not xml_files:
+            print("[ERROR] No XML marker files found!")
+            # Return a clear error message instead of hardcoded fallback
+            return "ERROR: No SCTE-35 marker files found. Please generate a marker from the SCTE-35 Professional tab first."
+        
+        # Sort by modification time and get the latest (most recent)
+        latest_file = max(xml_files, key=lambda f: f.stat().st_mtime)
+        latest_file_time = datetime.fromtimestamp(latest_file.stat().st_mtime)
+        
+        print(f"[DEBUG] Latest marker file: {latest_file.name}")
+        print(f"[DEBUG] File modified: {latest_file_time}")
+        print(f"[DEBUG] Full path: {latest_file}")
+        
+        # Return relative path from the markers directory for TSDuck
+        relative_path = latest_file.relative_to(markers_dir.parent) if markers_dir.parent.exists() else str(latest_file)
+        print(f"[DEBUG] Returning relative path: {relative_path}")
+        return relative_path
     
     def check_pid_conflicts(self, input_type, input_source, service_config):
         """Check if PID remapping is needed to avoid conflicts"""
@@ -3638,6 +3908,35 @@ class MainWindow(QMainWindow):
             all_config = self.config_widget.get_all_config()
             service_config = all_config["service"]
             scte35_config = all_config["scte35"]
+            
+            # Show marker confirmation dialog
+            selected_marker = self.get_latest_scte35_marker()
+            from PyQt6.QtWidgets import QMessageBox, QPushButton
+            
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Confirm Marker Selection")
+            msg.setIcon(QMessageBox.Icon.Question)
+            msg.setText("Confirm SCTE-35 Marker Selection")
+            msg.setInformativeText(
+                f"📌 Marker to be used:\n\n"
+                f"   {selected_marker}\n\n"
+                f"⚠️ This marker will be used in the TSDuck command.\n"
+                f"If you want to use a different marker, generate it from the Professional SCTE-35 tab first."
+            )
+            
+            continue_btn = QPushButton("✅ Continue")
+            continue_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 5px 20px;")
+            cancel_btn = QPushButton("❌ Cancel")
+            cancel_btn.setStyleSheet("background-color: #f44336; color: white; padding: 5px 20px;")
+            
+            msg.addButton(continue_btn, QMessageBox.ButtonRole.AcceptRole)
+            msg.addButton(cancel_btn, QMessageBox.ButtonRole.RejectRole)
+            
+            result = msg.exec()
+            
+            if result != QMessageBox.ButtonRole.AcceptRole:
+                # User cancelled
+                return
             
             command = self.build_command()
             # Get console widget from monitoring tab
@@ -3827,6 +4126,65 @@ class MainWindow(QMainWindow):
             self.monitoring_widget.console_widget.append_output(f"[ERROR] Error killing processes: {e}")
             QMessageBox.critical(self, "Error", f"Failed to kill processes: {str(e)}")
     
+    def preview_command(self):
+        """Preview the TSDuck command that will be executed"""
+        try:
+            # Get configuration
+            all_config = self.config_widget.get_all_config()
+            service_config = all_config["service"]
+            
+            # Build command
+            command = self.build_command()
+            
+            # Get the marker file being used
+            marker_file = self.get_latest_scte35_marker()
+            
+            # Create preview dialog
+            from PyQt6.QtWidgets import QMessageBox, QTextEdit, QVBoxLayout, QDialog, QPushButton
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("TSDuck Command Preview")
+            dialog.setMinimumSize(800, 600)
+            
+            layout = QVBoxLayout()
+            
+            # Info label
+            info_label = QLabel(f"📌 Marker File: {marker_file}\n\n🔧 TSDuck Command:")
+            info_label.setStyleSheet("font-weight: bold; font-size: 12px; padding: 10px;")
+            layout.addWidget(info_label)
+            
+            # Command display
+            cmd_text = QTextEdit()
+            cmd_text.setReadOnly(True)
+            cmd_text.setFont(QFont("Courier", 10))
+            cmd_text.setStyleSheet("background-color: #1e1e1e; color: #ffffff; padding: 10px;")
+            
+            # Format command nicely
+            cmd_str = " ".join(command)
+            # Break long lines
+            formatted_cmd = ""
+            line_length = 120
+            for i in range(0, len(cmd_str), line_length):
+                formatted_cmd += cmd_str[i:i+line_length] + "\n   "
+            
+            cmd_text.setText(f"   {formatted_cmd.strip()}")
+            layout.addWidget(cmd_text)
+            
+            # Buttons
+            buttons_layout = QHBoxLayout()
+            close_btn = QPushButton("Close")
+            close_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 8px 20px;")
+            close_btn.clicked.connect(dialog.close)
+            buttons_layout.addStretch()
+            buttons_layout.addWidget(close_btn)
+            layout.addLayout(buttons_layout)
+            
+            dialog.setLayout(layout)
+            dialog.exec()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to preview command: {str(e)}")
+    
     def processing_finished(self, exit_code: int):
         """Handle processing finished"""
         self.start_btn.setEnabled(True)
@@ -3975,25 +4333,7 @@ class MainWindow(QMainWindow):
                 if hasattr(self.config_widget.service_widget, 'pcr_pid'):
                     self.config_widget.service_widget.pcr_pid.setValue(service_config.get("pcr_pid", 256))
             
-            if "scte35" in config and hasattr(self, 'config_widget') and hasattr(self.config_widget, 'scte35_widget'):
-                scte35_config = config["scte35"]
-                # SCTE-35 configuration
-                if hasattr(self.config_widget.scte35_widget, 'ad_duration'):
-                    self.config_widget.scte35_widget.ad_duration.setValue(scte35_config.get("ad_duration", 600))
-                if hasattr(self.config_widget.scte35_widget, 'event_id'):
-                    self.config_widget.scte35_widget.event_id.setValue(scte35_config.get("event_id", 100023))
-                if hasattr(self.config_widget.scte35_widget, 'preroll_duration'):
-                    self.config_widget.scte35_widget.preroll_duration.setValue(scte35_config.get("preroll_duration", 0))
-                
-                # Plugin configuration
-                if hasattr(self.config_widget.scte35_widget, 'pmt_enabled'):
-                    self.config_widget.scte35_widget.pmt_enabled.setChecked(scte35_config.get("pmt_enabled", True))
-                if hasattr(self.config_widget.scte35_widget, 'pmt_params'):
-                    self.config_widget.scte35_widget.pmt_params.setText(scte35_config.get("pmt_params", ""))
-                if hasattr(self.config_widget.scte35_widget, 'spliceinject_enabled'):
-                    self.config_widget.scte35_widget.spliceinject_enabled.setChecked(scte35_config.get("spliceinject_enabled", True))
-                if hasattr(self.config_widget.scte35_widget, 'spliceinject_params'):
-                    self.config_widget.scte35_widget.spliceinject_params.setText(scte35_config.get("spliceinject_params", ""))
+            # SCTE-35 configuration removed - using dedicated Professional SCTE-35 tab instead
         except Exception as e:
             print(f"Error applying configuration: {e}")
             # Don't crash the application, just log the error
