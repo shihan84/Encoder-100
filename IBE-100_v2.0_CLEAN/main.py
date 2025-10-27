@@ -819,14 +819,29 @@ Disk Usage:     {disk_percent}%
             from pathlib import Path
             from datetime import datetime
             
-            markers_dir = Path("scte35_final")
+            # Try multiple possible paths
+            possible_paths = [
+                Path("scte35_final"),
+                Path("../scte35_final"),
+                Path.cwd() / "scte35_final",
+                Path.cwd().parent / "scte35_final"
+            ]
             
-            if not markers_dir.exists():
-                status = "[ERROR] No markers directory found"
+            markers_dir = None
+            for path in possible_paths:
+                if path.exists():
+                    markers_dir = path
+                    print(f"[DEBUG] Found markers directory: {markers_dir}")
+                    break
+            
+            if markers_dir is None:
+                status = "[ERROR] No markers directory found. Checked: scte35_final, ../scte35_final, and parent directories."
                 self.scte35_monitor.setHtml(f"<pre style='color: #f44336;'>{status}</pre>")
+                print(f"[DEBUG] Markers directory not found in any location")
                 return
             
             xml_files = list(markers_dir.glob("*.xml"))
+            print(f"[DEBUG] Found {len(xml_files)} XML marker files")
             
             if not xml_files:
                 status = "[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab."
