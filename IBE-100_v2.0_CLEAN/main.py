@@ -873,8 +873,11 @@ Marker Directory:   {markers_dir.absolute()}
             self.scte35_monitor.setPlainText(status)
             
         except Exception as e:
-            status = f"[ERROR] SCTE-35 monitoring error: {e}"
-            self.scte35_monitor.setHtml(f"<pre style='color: #f44336;'>{status}</pre>")
+            status = f"[ERROR] SCTE-35 monitoring error: {e}\n\nTraceback will be shown in console."
+            self.scte35_monitor.setPlainText(status)
+            import traceback
+            print(f"[ERROR] SCTE-35 Status Error: {e}")
+            traceback.print_exc()
     
     def append(self, text):
         self.console.append(text)
