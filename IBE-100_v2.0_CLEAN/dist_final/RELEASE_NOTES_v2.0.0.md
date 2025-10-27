@@ -1,10 +1,10 @@
-# IBE-100 v2.0.0 Release Notes
+# IBE-100 v2.0.1 Release Notes
 
 ## Release Date
 January 2025
 
 ## Overview
-IBE-100 v2.0 is a complete rebuild of the ITAssist Broadcast Encoder with a clean, professional implementation focusing on essential features and modern UI/UX.
+IBE-100 v2.0.1 is a complete rebuild of the ITAssist Broadcast Encoder with a clean, professional implementation focusing on essential features and modern UI/UX. This version includes critical fixes for SRT input, XML format, and PID conflicts.
 
 ## What's New
 
@@ -164,6 +164,13 @@ IBE-100 v2.0 is a complete rebuild of the ITAssist Broadcast Encoder with a clea
 - Website: https://www.itassist.one
 
 ## Changelog
+
+### v2.0.1 (January 2025)
+- 🔧 Fixed SRT input configuration to use correct TSDuck parameters
+- 🔧 Fixed XML marker format for TSDuck spliceinject plugin
+- 🔧 Fixed PID conflict errors by skipping remap for SRT input
+- 🔧 Fixed console window visibility for TSDuck process
+- 📝 Version updated to 2.0.1
 
 ### v2.0.0 (January 2025)
 - ✨ Complete rebuild from scratch
