@@ -836,7 +836,7 @@ Disk Usage:     {disk_percent}%
             
             if markers_dir is None:
                 status = "[ERROR] No markers directory found. Checked: scte35_final, ../scte35_final, and parent directories."
-                self.scte35_monitor.setHtml(f"<pre style='color: #f44336;'>{status}</pre>")
+                self.scte35_monitor.setPlainText(status)
                 print(f"[DEBUG] Markers directory not found in any location")
                 return
             
@@ -845,7 +845,7 @@ Disk Usage:     {disk_percent}%
             
             if not xml_files:
                 status = "[WARNING] No SCTE-35 markers found. Generate markers from the SCTE-35 tab."
-                self.scte35_monitor.setHtml(f"<pre style='color: #ff9800;'>{status}</pre>")
+                self.scte35_monitor.setPlainText(status)
                 return
             
             # Get latest marker
@@ -869,7 +869,7 @@ Marker Directory:   {markers_dir.absolute()}
 
 ═══════════════════════════════════════════════════
 """
-            self.scte35_monitor.setHtml(f"<pre style='color: #4CAF50;'>{status}</pre>")
+            self.scte35_monitor.setPlainText(status)
             
         except Exception as e:
             status = f"[ERROR] SCTE-35 monitoring error: {e}"
