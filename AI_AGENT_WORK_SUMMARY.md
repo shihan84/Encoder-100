@@ -2,7 +2,7 @@
 
 ## Project Overview
 **Project**: ITAssist Broadcast Encoder - 100 (IBE-100)  
-**Version**: 2.0.2  
+**Version**: 2.0.4  
 **Status**: Production Ready  
 **Last Updated**: January 2025
 
@@ -209,6 +209,7 @@ IBE-100_v2.0_CLEAN/
 ### Source Code
 - **Main Application**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\main.py`
 - **Build Config**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\build_config.py`
+- **Profile Manager**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\profile_manager.py`
 - **License Manager**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\github_license_manager.py`
 - **Executable**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\dist\IBE-100.exe`
 - **Release Package**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\dist_final\`
@@ -216,8 +217,7 @@ IBE-100_v2.0_CLEAN/
 ### GitHub Repository
 - **URL**: https://github.com/shihan84/Encoder-100
 - **Branch**: main
-- **Latest Commit**: 954c995
-- **Latest Version**: 2.0.1
+- **Latest Version**: 2.0.4
 
 ## Key Code Sections
 
@@ -387,6 +387,30 @@ def build_command(self):
 - SCTE-35 injection requires valid PTS timing
 - License system requires internet connection for validation
 - SCTE-35 Status tab temporarily disabled (crash prevention)
+
+### Recent Implementations (v2.0.4)
+
+#### Profile-Based Output Folders
+- **Location**: `main.py` lines 437-487 (`update_output_paths_for_profile`)
+- **Key Logic**:
+  ```python
+  def update_output_paths_for_profile(self, profile_name):
+      # Sanitize profile name for filesystem
+      safe_name = re.sub(r'[<>:"/\\|?*]', '_', profile_name)
+      # Update HLS: output/{profile_name}/hls
+      # Update DASH: output/{profile_name}/dash
+      # Check for duplicates to avoid nested folders
+  ```
+- **Integration**: 
+  - Called when loading profile (line 434)
+  - Called when saving profile (line 595)
+  - Auto-directory creation in `start_processing` (lines 1798-1816)
+
+#### Multiple Instance Support
+- Each profile automatically gets its own output directory
+- Example: Profile "Distributor_SRT" → `output/Distributor_SRT/hls`
+- Prevents file conflicts when running multiple app instances
+- Easy to identify which profile generated which output files
 
 ## AI Agent Instructions
 

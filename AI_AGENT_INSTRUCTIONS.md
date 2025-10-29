@@ -2,12 +2,12 @@
 
 ## 📋 **Project Overview**
 
-**Project Name**: ITAssist Broadcast Encoder - 100 (IBE-100) v1.1.0  
+**Project Name**: ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.4  
 **Repository**: https://github.com/shihan84/Encoder-100.git  
-**Main Application**: `enc100.py`  
-**Build Scripts**: `build.sh` (macOS/Linux), `build.bat` (Windows), `build_windows_enhanced.bat` (Enhanced Windows)  
-**Distribution**: `releases/` folder with executables  
-**Latest Release**: v1.1.0 "SCTE-35 Professional" (October 25, 2024)
+**Main Application**: `IBE-100_v2.0_CLEAN/main.py`  
+**Build Scripts**: `IBE-100_v2.0_CLEAN/build_config.py`  
+**Distribution**: `IBE-100_v2.0_CLEAN/dist_final/` folder with executables  
+**Latest Release**: v2.0.4 "Profile-Based Output Folders & Multiple Instance Support" (January 2025)
 
 ---
 
@@ -133,7 +133,7 @@
 
 ## 🎯 **Current Status Summary**
 
-### **✅ Production Ready Features**
+### **✅ Production Ready Features (v2.0.4)**
 1. **Professional GUI**: Modern dark theme with consistent styling
 2. **Stream Processing**: Real-time output with TSDuck integration
 3. **Smart PID Handling**: Automatic conflict detection and resolution
@@ -141,15 +141,41 @@
 5. **Error Handling**: Comprehensive guidance for troubleshooting
 6. **Multi-Platform**: Windows, macOS, Linux support
 7. **Distribution**: Ready-to-use executables available
+8. **Profile Management**: Save/load/delete stream configurations
+9. **Continuous Streaming**: Auto-reconnect on disconnection
+10. **Profile-Based Output Folders**: Automatic folder organization per profile
+11. **Multiple Instance Support**: Run multiple app instances concurrently
+12. **DASH/MPD Support**: Full DASH streaming with SCTE-35 markers
 
-### **🎬 NEW: SCTE-35 Professional Features**
+### **🎬 SCTE-35 Professional Features**
 1. **Complete SCTE-35 System**: Professional marker generation for broadcast streams
-2. **Template System**: 6 standard broadcast templates (Preroll, Midroll, Postroll, Scheduled, Emergency, Multi-Break)
-3. **Enhanced UI**: New tabs for SCTE-35 Generation and Templates
-4. **TSDuck Integration**: Direct XML output for professional stream processing
-5. **Professional Workflows**: Live broadcasting, on-demand content, scheduled programming
-6. **Marker Types**: CUE-OUT, CUE-IN, CRASH-OUT, TIME_SIGNAL
-7. **File Management**: Organized marker storage and cleanup
+2. **Marker Types**: Pre-roll, CUE-OUT, CUE-IN, Time Signal
+3. **TSDuck Integration**: Direct XML output for professional stream processing
+4. **Professional Workflows**: Live broadcasting, on-demand content, scheduled programming
+5. **File Management**: Organized marker storage in `scte35_final/` directory
+
+### **📁 v2.0.4 New Features**
+1. **Profile-Based Output Folders**: 
+   - Output folders automatically named after profile (e.g., `output/ProfileName/hls`)
+   - Prevents conflicts when running multiple instances
+   - Easy identification of output files per profile
+   - Auto-directory creation when starting streams
+
+2. **Multiple Instance Support**:
+   - Each profile uses its own isolated output directory
+   - No file conflicts between different profiles
+   - Perfect for running multiple streams simultaneously
+
+3. **Web Server Improvements**:
+   - Auto-creates serving directory if missing
+   - Works seamlessly with profile-based folders
+   - Prevents "Directory not found" errors
+
+4. **DASH/MPD Support**:
+   - Full DASH streaming with `.mpd` manifest files
+   - SCTE-35 markers included in DASH streams
+   - CORS support for web players
+   - Complete documentation (`DASH_MPD_GUIDE.md`)
 
 ### **🔧 Technical Implementation**
 - **Language**: Python 3.9+ with PyQt6
@@ -328,6 +354,38 @@
 
 ## 📝 **Version History**
 
+### **v2.0.4 - Profile-Based Output Folders (January 2025)**
+- ✅ Profile-based output folder organization
+- ✅ Multiple instance support (no file conflicts)
+- ✅ Auto-directory creation for output folders
+- ✅ Web server directory auto-creation fix
+- ✅ DASH/MPD support confirmed with SCTE-35
+- ✅ Complete DASH/MPD documentation
+- ✅ Profile name sanitization for filesystem compatibility
+
+### **v2.0.3 - Profile Management & Continuous Streaming (January 2025)**
+- ✅ Profile management system (save/load/delete)
+- ✅ Editable profile combo box
+- ✅ Profile persistence in JSON format
+- ✅ Continuous streaming with auto-reconnect
+- ✅ Exponential backoff retry logic
+- ✅ Graceful shutdown handling
+
+### **v2.0.2 - Auto-Update & License System (January 2025)**
+- ✅ GitHub release checking for updates
+- ✅ Update notification dialog
+- ✅ GitHub-based license management
+- ✅ Trial and unlimited license support
+- ✅ Deployment troubleshooting tools
+
+### **v2.0.1 - Clean Rebuild (December 2024)**
+- ✅ Complete application rebuild from scratch
+- ✅ Fixed SRT input configuration
+- ✅ Fixed XML marker format (TSDuck compatible)
+- ✅ Fixed PID conflict handling
+- ✅ Fixed console window visibility
+- ✅ Integrated web server for HLS/DASH
+
 ### **v1.1.0 - SCTE-35 Professional (October 25, 2024)**
 - ✅ Complete SCTE-35 marker generation system
 - ✅ Professional template system (6 standard templates)
@@ -352,16 +410,23 @@
 
 ## 🎉 **Project Success Summary**
 
-**The ITAssist Broadcast Encoder - 100 (IBE-100) v1.1.0 is now a fully functional, production-ready application with:**
+**The ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.4 is now a fully functional, production-ready application with:**
 
 - **Professional GUI**: Modern dark theme with consistent styling
 - **Advanced Stream Processing**: TSDuck integration with smart PID handling
-- **Complete SCTE-35 System**: Professional marker generation and template system
-- **Professional Templates**: 6 standard broadcast templates for all scenarios
-- **Enhanced User Interface**: New tabs for SCTE-35 Generation and Templates
+- **Complete SCTE-35 System**: Professional marker generation with multiple cue types
+- **Profile Management**: Save/load/delete stream configurations
+- **Continuous Streaming**: Auto-reconnect with exponential backoff
+- **Profile-Based Output Folders**: Automatic folder organization per profile
+- **Multiple Instance Support**: Run multiple app instances without conflicts
+- **DASH/MPD Support**: Full DASH streaming with SCTE-35 markers
+- **HLS Support**: Complete HLS streaming with SCTE-35 markers
+- **Auto-Update System**: GitHub release checking
+- **License Management**: GitHub-based license system (ready for integration)
+- **Integrated Web Server**: Built-in server for HLS/DASH testing
 - **Multi-Platform Support**: Windows, macOS, Linux compatibility
 - **Production Distribution**: Ready-to-use executables available
-- **Comprehensive Documentation**: Complete user guides and SCTE-35 documentation
+- **Comprehensive Documentation**: Complete user guides and technical documentation
 - **GitHub Integration**: All code and distributions available online
 
-**🚀 Ready for professional broadcast operations with comprehensive SCTE-35 support!**
+**🚀 Ready for professional broadcast operations with comprehensive SCTE-35 support and multi-instance capabilities!**
