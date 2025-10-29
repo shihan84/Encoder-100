@@ -974,6 +974,8 @@ class MainWindow(QMainWindow):
         self.processor = None
         self.latest_marker = None
         self.update_checker = None
+        self.streaming_active = False
+        self.retry_count = 0
         self.setup_ui()
         self.setup_connections()
         
@@ -1411,40 +1413,88 @@ class MainWindow(QMainWindow):
         cmd_str = ' '.join(command)
         self.monitoring_widget.append(f"[INFO] TSDuck Command: {cmd_str}")
         
-        # Start TSDuck process in background thread
-        def run_tsp():
-            try:
-                process = subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                    universal_newlines=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
-                )
-                
-                self.processor = process
-                
-                # Read output line by line
-                for line in process.stdout:
-                    line_text = line.strip()
-                    self.monitoring_widget.append(f"[TSDuck] {line_text}")
+        # Set streaming active flag
+        self.streaming_active = True
+        self.retry_count = 0
+        
+        # Start TSDuck process in background thread with auto-reconnect
+        def run_tsp_continuous():
+            import time
+            max_retries = 999  # Effectively unlimited retries
+            
+            while self.streaming_active and self.retry_count < max_retries:
+                try:
+                    process = subprocess.Popen(
+                        command,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        bufsize=1,
+                        universal_newlines=True,
+                        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+                    )
                     
-                    # Detect SCTE-35 markers in stream
-                    if any(keyword in line_text.lower() for keyword in ['splice', 'scte', 'cue', 'break', 'ad break']):
-                        self.monitoring_widget.scte35_markers_detected += 1
-                        self.monitoring_widget.last_scte35_detection = line_text
-                        self.monitoring_widget.update_scte35_status()
-                
-                process.wait()
-                self.monitoring_widget.append(f"[INFO] TSDuck process finished with code: {process.returncode}")
-                
-            except Exception as e:
-                self.monitoring_widget.append(f"[ERROR] Stream error: {e}")
+                    self.processor = process
+                    
+                    if self.retry_count > 0:
+                        self.monitoring_widget.append(f"[INFO] Reconnected - Retry attempt {self.retry_count}")
+                        self.retry_count = 0  # Reset counter on successful connection
+                    
+                    # Read output line by line
+                    for line in process.stdout:
+                        if not self.streaming_active:
+                            break
+                            
+                        line_text = line.strip()
+                        self.monitoring_widget.append(f"[TSDuck] {line_text}")
+                        
+                        # Detect SCTE-35 markers in stream
+                        if any(keyword in line_text.lower() for keyword in ['splice', 'scte', 'cue', 'break', 'ad break']):
+                            self.monitoring_widget.scte35_markers_detected += 1
+                            self.monitoring_widget.last_scte35_detection = line_text
+                            self.monitoring_widget.update_scte35_status()
+
+                    # Process finished
+                    process.wait()
+                    exit_code = process.returncode
+                    self.processor = None
+                    
+                    if not self.streaming_active:
+                        # User stopped manually
+                        self.monitoring_widget.append("[INFO] Stream stopped by user")
+                        break
+                    
+                    # Stream stopped unexpectedly - reconnect
+                    self.retry_count += 1
+                    
+                    if exit_code == 0:
+                        self.monitoring_widget.append(f"[WARNING] Stream disconnected (exit code: {exit_code}). Reconnecting in 5 seconds...")
+                    else:
+                        self.monitoring_widget.append(f"[WARNING] Stream error (exit code: {exit_code}). Reconnecting in 5 seconds...")
+                    
+                    # Wait before reconnecting (with exponential backoff, max 30 seconds)
+                    wait_time = min(5 * min(self.retry_count, 6), 30)
+                    for i in range(wait_time):
+                        if not self.streaming_active:
+                            break
+                        time.sleep(1)
+                    
+                except Exception as e:
+                    self.monitoring_widget.append(f"[ERROR] Stream error: {e}")
+                    if not self.streaming_active:
+                        break
+                    
+                    # Wait before retry
+                    self.retry_count += 1
+                    wait_time = min(5 * min(self.retry_count, 6), 30)
+                    self.monitoring_widget.append(f"[INFO] Retrying in {wait_time} seconds...")
+                    for i in range(wait_time):
+                        if not self.streaming_active:
+                            break
+                        time.sleep(1)
         
         # Run in background thread
-        thread = threading.Thread(target=run_tsp, daemon=True)
+        thread = threading.Thread(target=run_tsp_continuous, daemon=True)
         thread.start()
         
         self.start_btn.setEnabled(False)
@@ -1452,15 +1502,25 @@ class MainWindow(QMainWindow):
     
     def stop_processing(self):
         """Stop TSDuck processing"""
+        # Set flag to stop continuous streaming
+        self.streaming_active = False
+        
         if self.processor:
             self.monitoring_widget.append("[INFO] Stopping TSDuck process...")
             try:
                 self.processor.terminate()
                 self.processor.wait(timeout=5)
             except:
-                self.processor.kill()
-            self.processor = None
-            self.monitoring_widget.append("[INFO] Processing stopped.")
+                try:
+                    self.processor.kill()
+                except:
+                    pass
+            finally:
+                self.processor = None
+        
+        # Reset retry count
+        self.retry_count = 0
+        self.monitoring_widget.append("[INFO] Processing stopped.")
         
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
