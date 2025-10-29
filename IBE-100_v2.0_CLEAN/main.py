@@ -961,6 +961,7 @@ class MonitoringWidget(QWidget):
         
         # Web server instance
         self.web_server_process = None
+        self.web_server_thread = None
     
     def setup_monitoring(self):
         """Setup real-time monitoring"""
@@ -992,63 +993,98 @@ class MonitoringWidget(QWidget):
             self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
             return
         
-        # Start web server using the embedded serve_hls.py script
-        # For production, we'll use a simple embedded server
+        # Start web server using embedded Python HTTP server
+        # Use threading to run server in background
         try:
-            # Create embedded server code
-            server_code = f'''
-import http.server
-import socketserver
-import os
-
-class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', '*')
-        super().end_headers()
-    
-    def log_message(self, format, *args):
-        pass
-
-os.chdir(r"{path}")
-Handler = CORSRequestHandler
-with socketserver.TCPServer(("", {port}), Handler) as httpd:
-    httpd.serve_forever()
-'''
+            import http.server
+            import socketserver
+            import threading
             
-            # Save server script
-            server_script = f"{path}/_server_{port}.py"
-            with open(server_script, 'w') as f:
-                f.write(server_code)
+            # Check if port is already in use
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('localhost', port))
+            sock.close()
             
-            # Start server in background
-            self.web_server_process = subprocess.Popen(
-                ["python", server_script],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=path,
-                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
-            )
+            if result == 0:
+                self.web_server_status.setText(f"❌ Error: Port {port} is already in use")
+                self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
+                return
             
-            self.web_server_status.setText(f"✅ Web Server: Running on http://localhost:{port}")
-            self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #4CAF50; border-radius: 4px; background-color: #2a3a2a;")
-            self.start_server_btn.setEnabled(False)
-            self.stop_server_btn.setEnabled(True)
-            self.web_server_url.setText(f"http://localhost:{port}")
+            # Create CORS-enabled handler
+            class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
+                def end_headers(self):
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                    self.send_header('Access-Control-Allow-Headers', '*')
+                    super().end_headers()
+                
+                def log_message(self, format, *args):
+                    # Suppress log messages
+                    pass
+            
+            # Create server in a thread
+            def run_server():
+                try:
+                    os.chdir(path)
+                    Handler = CORSRequestHandler
+                    with socketserver.TCPServer(("", port), Handler) as httpd:
+                        self.web_server_process = httpd
+                        httpd.serve_forever()
+                except Exception as e:
+                    print(f"[ERROR] Web server error: {e}")
+            
+            # Start server thread
+            server_thread = threading.Thread(target=run_server, daemon=True)
+            server_thread.start()
+            
+            # Wait a moment to check if server started
+            import time
+            time.sleep(0.5)
+            
+            # Check if server is running
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('localhost', port))
+            sock.close()
+            
+            if result == 0:
+                self.web_server_status.setText(f"✅ Web Server: Running on http://localhost:{port}")
+                self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #4CAF50; border-radius: 4px; background-color: #2a3a2a;")
+                self.start_server_btn.setEnabled(False)
+                self.stop_server_btn.setEnabled(True)
+                self.web_server_url.setText(f"http://localhost:{port}")
+                print(f"[INFO] Web server started on port {port}, serving {path}")
+            else:
+                self.web_server_status.setText(f"❌ Error: Server failed to start on port {port}")
+                self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
             
         except Exception as e:
-            self.web_server_status.setText(f"❌ Error: {str(e)}")
+            import traceback
+            error_msg = str(e)
+            print(f"[ERROR] Web server startup error: {error_msg}")
+            traceback.print_exc()
+            self.web_server_status.setText(f"❌ Error: {error_msg}")
             self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
     
     def stop_web_server(self):
         """Stop local web server"""
         if self.web_server_process:
             try:
-                self.web_server_process.terminate()
-                self.web_server_process.wait(timeout=2)
-            except:
-                self.web_server_process.kill()
+                # If it's a TCPServer object, shutdown it
+                if hasattr(self.web_server_process, 'shutdown'):
+                    self.web_server_process.shutdown()
+                elif hasattr(self.web_server_process, 'terminate'):
+                    # If it's a subprocess
+                    self.web_server_process.terminate()
+                    self.web_server_process.wait(timeout=2)
+                else:
+                    # Try to kill if it's a process
+                    try:
+                        self.web_server_process.kill()
+                    except:
+                        pass
+            except Exception as e:
+                print(f"[WARNING] Error stopping web server: {e}")
             finally:
                 self.web_server_process = None
         
@@ -1056,6 +1092,7 @@ with socketserver.TCPServer(("", {port}), Handler) as httpd:
         self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #444; border-radius: 4px; background-color: #3a3a3a;")
         self.start_server_btn.setEnabled(True)
         self.stop_server_btn.setEnabled(False)
+        print("[INFO] Web server stopped")
         
         # SCTE-35 monitoring - DISABLED for now to prevent crashes
         # TODO: Fix SCTE-35 status tab display issue
