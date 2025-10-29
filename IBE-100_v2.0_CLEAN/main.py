@@ -190,19 +190,23 @@ class StreamConfigWidget(QWidget):
         output_layout.addWidget(self.output_srt)
         
         # HLS Output
+        self.output_hls_label = QLabel("HLS Output Directory:")
         self.output_hls = QLineEdit()
         self.output_hls.setPlaceholderText("Enter HLS output directory (e.g., /path/to/output)")
         self.output_hls.setText("output/hls")
         self.output_hls.setVisible(False)
-        output_layout.addWidget(QLabel("HLS Output Directory:"))
+        self.output_hls_label.setVisible(False)
+        output_layout.addWidget(self.output_hls_label)
         output_layout.addWidget(self.output_hls)
         
         # DASH Output
+        self.output_dash_label = QLabel("DASH Output Directory:")
         self.output_dash = QLineEdit()
         self.output_dash.setPlaceholderText("Enter DASH output directory (e.g., /path/to/output)")
         self.output_dash.setText("output/dash")
         self.output_dash.setVisible(False)
-        output_layout.addWidget(QLabel("DASH Output Directory:"))
+        self.output_dash_label.setVisible(False)
+        output_layout.addWidget(self.output_dash_label)
         output_layout.addWidget(self.output_dash)
         
         # Show/Hide based on output type
@@ -376,17 +380,21 @@ class StreamConfigWidget(QWidget):
     
     def on_output_type_changed(self, text):
         """Show/hide output fields based on selected output type"""
-        # Hide all output fields
+        # Hide all output fields and labels
         self.output_srt.setVisible(False)
         self.output_hls.setVisible(False)
+        self.output_hls_label.setVisible(False)
         self.output_dash.setVisible(False)
+        self.output_dash_label.setVisible(False)
         
         # Show relevant field based on output type
         if text == "SRT":
             self.output_srt.setVisible(True)
         elif text == "HLS":
+            self.output_hls_label.setVisible(True)
             self.output_hls.setVisible(True)
         elif text == "DASH":
+            self.output_dash_label.setVisible(True)
             self.output_dash.setVisible(True)
         else:
             # For other types (UDP, TCP, HTTP, File), show SRT field as general output
