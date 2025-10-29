@@ -1332,7 +1332,12 @@ class MainWindow(QMainWindow):
         
         # Add output based on selected output type
         if output_type == "SRT":
-            output_args = ["-O", "srt", "--caller", output_srt, "--streamid", stream_id, "--latency", str(latency)]
+            # Build SRT output command
+            output_args = ["-O", "srt", "--caller", output_srt, "--latency", str(latency)]
+            
+            # Only add --streamid if it's not empty
+            if stream_id and stream_id.strip():
+                output_args.extend(["--streamid", stream_id.strip()])
         elif output_type == "HLS":
             output_args = ["-O", "hls", "--live", output_hls, "--segment-duration", str(segment_duration), "--playlist-window", str(playlist_window)]
             if enable_cors:
