@@ -119,7 +119,9 @@ class StreamConfigWidget(QWidget):
             profile_select_layout = QHBoxLayout()
             profile_select_layout.addWidget(QLabel("Profile:"))
             self.profile_combo = QComboBox()
-            self.profile_combo.setEditable(False)
+            self.profile_combo.setEditable(True)  # Allow typing profile names
+            self.profile_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)  # Don't auto-add typed text
+            self.profile_combo.lineEdit().setPlaceholderText("Type profile name or select existing...")
             self.refresh_profiles()
             profile_select_layout.addWidget(self.profile_combo, 1)
             
@@ -411,8 +413,18 @@ class StreamConfigWidget(QWidget):
         if not self.profile_manager:
             return
         
-        profile_name = self.profile_combo.currentText()
+        profile_name = self.profile_combo.currentText().strip()
         if not profile_name:
+            return
+        
+        # Check if it's an existing profile
+        if profile_name not in self.profile_manager.get_profile_names():
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "Profile Not Found",
+                f"Profile '{profile_name}' does not exist.\n\nPlease select an existing profile or save a new one first."
+            )
             return
         
         config = self.profile_manager.get_profile(profile_name)
@@ -502,26 +514,37 @@ class StreamConfigWidget(QWidget):
         
         from PyQt6.QtWidgets import QInputDialog, QMessageBox
         
-        # Get profile name
-        name, ok = QInputDialog.getText(
-            self,
-            "Save Profile",
-            "Profile Name:",
-            text=f"Profile_{len(self.profile_manager.get_profile_names()) + 1}"
-        )
+        # Get profile name from combo box or dialog
+        current_text = self.profile_combo.currentText().strip()
         
-        if not ok or not name.strip():
-            return
+        if current_text and current_text in self.profile_manager.get_profile_names():
+            # Profile exists, ask for overwrite
+            name = current_text
+        elif current_text:
+            # User typed a name in combo box, use it
+            name = current_text
+        else:
+            # Show dialog to get profile name
+            name, ok = QInputDialog.getText(
+                self,
+                "Save Profile",
+                "Profile Name:",
+                text=f"Profile_{len(self.profile_manager.get_profile_names()) + 1}"
+            )
+            
+            if not ok or not name.strip():
+                return
         
         # Get description
         desc, ok = QInputDialog.getText(
             self,
             "Save Profile",
-            "Profile Description (optional):"
+            "Profile Description (optional):",
+            text=""
         )
         
         if not ok:
-            return
+            desc = ""
         
         # Check if profile exists
         if name in self.profile_manager.get_profile_names():
