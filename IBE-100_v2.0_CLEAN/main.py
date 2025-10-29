@@ -1095,8 +1095,16 @@ class MonitoringWidget(QWidget):
             base_url = self.web_server_url.text().strip()
             if not base_url:
                 base_url = f"http://localhost:{port}"
+            elif ":" not in base_url.split("//")[-1]:
+                # URL doesn't have port, extract it and use configured port
+                if base_url.startswith("http://"):
+                    base_url = f"http://localhost:{port}"
+                elif base_url.startswith("https://"):
+                    base_url = f"https://localhost:{port}"
+                else:
+                    base_url = f"http://localhost:{port}"
             
-            # Always show links pointing to stream.m3u8 and stream.mpd in the serving directory
+            # Always show links pointing to stream.m3u8 and stream.mpd
             # The actual filename will be stream.m3u8 or stream.mpd
             hls_url = f"{base_url}/stream.m3u8"
             dash_url = f"{base_url}/stream.mpd"
@@ -1191,6 +1199,8 @@ class MonitoringWidget(QWidget):
                 self.start_server_btn.setEnabled(False)
                 self.stop_server_btn.setEnabled(True)
                 self.web_server_url.setText(f"http://localhost:{port}")
+                # Update stream links when server starts
+                self.update_stream_links()
                 print(f"[INFO] Web server started on port {port}, serving {path}")
             else:
                 self.web_server_status.setText(f"❌ Error: Server failed to start on port {port}")
@@ -1496,6 +1506,8 @@ class MainWindow(QMainWindow):
         
         # Monitoring Tab
         self.monitoring_widget = MonitoringWidget()
+        # Set reference to main window so monitoring widget can access config
+        self.monitoring_widget.main_window = self
         self.tab_widget.addTab(self.monitoring_widget, "📊 Monitoring")
         
         main_layout.addWidget(self.tab_widget)
