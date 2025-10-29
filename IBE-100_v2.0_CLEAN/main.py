@@ -14,6 +14,13 @@ from PyQt6.QtWidgets import QPushButton, QLabel, QLineEdit, QSpinBox, QGroupBox,
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QTime, QThread
 from PyQt6.QtGui import QFont, QPixmap
 
+# Import profile manager
+try:
+    from profile_manager import ProfileManager
+except ImportError:
+    # Fallback if profile_manager not found
+    ProfileManager = None
+
 # Set UTF-8 encoding for Windows console
 os.system('chcp 65001 >nul 2>&1')
 
@@ -90,6 +97,11 @@ class StreamConfigWidget(QWidget):
     
     def __init__(self):
         super().__init__()
+        # Initialize profile manager
+        if ProfileManager:
+            self.profile_manager = ProfileManager()
+        else:
+            self.profile_manager = None
         self.setup_ui()
     
     def setup_ui(self):
@@ -97,6 +109,38 @@ class StreamConfigWidget(QWidget):
         scroll.setWidgetResizable(True)
         scroll_widget = QWidget()
         layout = QVBoxLayout(scroll_widget)
+        
+        # Profile Management Section
+        if self.profile_manager:
+            profile_group = QGroupBox("Profile Management")
+            profile_layout = QVBoxLayout()
+            
+            # Profile Selection
+            profile_select_layout = QHBoxLayout()
+            profile_select_layout.addWidget(QLabel("Profile:"))
+            self.profile_combo = QComboBox()
+            self.profile_combo.setEditable(False)
+            self.refresh_profiles()
+            profile_select_layout.addWidget(self.profile_combo, 1)
+            
+            # Load Profile Button
+            self.load_profile_btn = QPushButton("Load Profile")
+            self.load_profile_btn.clicked.connect(self.load_selected_profile)
+            profile_select_layout.addWidget(self.load_profile_btn)
+            
+            # Save Profile Button
+            self.save_profile_btn = QPushButton("Save as Profile")
+            self.save_profile_btn.clicked.connect(self.save_current_profile)
+            profile_select_layout.addWidget(self.save_profile_btn)
+            
+            # Delete Profile Button
+            self.delete_profile_btn = QPushButton("Delete")
+            self.delete_profile_btn.clicked.connect(self.delete_selected_profile)
+            profile_select_layout.addWidget(self.delete_profile_btn)
+            
+            profile_layout.addLayout(profile_select_layout)
+            profile_group.setLayout(profile_layout)
+            layout.addWidget(profile_group)
         
         # Input Configuration
         input_group = QGroupBox("Input Stream")
@@ -353,6 +397,184 @@ class StreamConfigWidget(QWidget):
                 self.output_srt.setPlaceholderText("Enter destination (e.g., 224.1.1.1:9999 or tcp://server:port)")
             else:
                 self.output_srt.setPlaceholderText("Enter SRT destination (e.g., cdn.example.com:8888)")
+    
+    def refresh_profiles(self):
+        """Refresh profile list in combo box"""
+        if not self.profile_manager:
+            return
+        
+        self.profile_combo.clear()
+        profiles = self.profile_manager.get_profile_names()
+        if profiles:
+            self.profile_combo.addItems(profiles)
+    
+    def load_selected_profile(self):
+        """Load selected profile configuration"""
+        if not self.profile_manager:
+            return
+        
+        profile_name = self.profile_combo.currentText()
+        if not profile_name:
+            return
+        
+        config = self.profile_manager.get_profile(profile_name)
+        if config:
+            self.apply_config(config)
+            print(f"[INFO] Loaded profile: {profile_name}")
+    
+    def apply_config(self, config):
+        """Apply configuration dictionary to UI fields"""
+        # Input settings
+        if "input_type" in config:
+            index = self.input_type.findText(config["input_type"])
+            if index >= 0:
+                self.input_type.setCurrentIndex(index)
+        
+        if "input_url" in config:
+            self.input_url.setText(config["input_url"])
+        
+        # Output settings
+        if "output_type" in config:
+            index = self.output_type.findText(config["output_type"])
+            if index >= 0:
+                self.output_type.setCurrentIndex(index)
+        
+        if "output_srt" in config:
+            self.output_srt.setText(config["output_srt"])
+        
+        if "output_hls" in config:
+            self.output_hls.setText(config["output_hls"])
+        
+        if "output_dash" in config:
+            self.output_dash.setText(config["output_dash"])
+        
+        # Service settings
+        if "service_name" in config:
+            self.service_name.setText(config["service_name"])
+        
+        if "provider_name" in config:
+            self.provider_name.setText(config["provider_name"])
+        
+        if "service_id" in config:
+            self.service_id.setValue(config["service_id"])
+        
+        if "vpid" in config:
+            self.vpid.setValue(config["vpid"])
+        
+        if "apid" in config:
+            self.apid.setValue(config["apid"])
+        
+        if "scte35_pid" in config:
+            self.scte35_pid.setValue(config["scte35_pid"])
+        
+        # SRT settings
+        if "stream_id" in config:
+            self.stream_id.setText(config["stream_id"])
+        
+        if "latency" in config:
+            self.latency.setValue(config["latency"])
+        
+        # HLS/DASH settings
+        if "enable_cors" in config:
+            self.enable_cors.setChecked(config["enable_cors"])
+        
+        if "segment_duration" in config:
+            self.segment_duration.setValue(config["segment_duration"])
+        
+        if "playlist_window" in config:
+            self.playlist_window.setValue(config["playlist_window"])
+        
+        # Injection settings
+        if "start_delay" in config:
+            self.start_delay.setValue(config["start_delay"])
+        
+        if "inject_count" in config:
+            self.inject_count.setValue(config["inject_count"])
+        
+        if "inject_interval" in config:
+            self.inject_interval.setValue(config["inject_interval"])
+        
+        # Trigger output type change to show/hide fields
+        self.on_output_type_changed(self.output_type.currentText())
+    
+    def save_current_profile(self):
+        """Save current configuration as a profile"""
+        if not self.profile_manager:
+            return
+        
+        from PyQt6.QtWidgets import QInputDialog, QMessageBox
+        
+        # Get profile name
+        name, ok = QInputDialog.getText(
+            self,
+            "Save Profile",
+            "Profile Name:",
+            text=f"Profile_{len(self.profile_manager.get_profile_names()) + 1}"
+        )
+        
+        if not ok or not name.strip():
+            return
+        
+        # Get description
+        desc, ok = QInputDialog.getText(
+            self,
+            "Save Profile",
+            "Profile Description (optional):"
+        )
+        
+        if not ok:
+            return
+        
+        # Check if profile exists
+        if name in self.profile_manager.get_profile_names():
+            reply = QMessageBox.question(
+                self,
+                "Profile Exists",
+                f"Profile '{name}' already exists. Overwrite?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+        
+        # Get current config
+        config = self.get_config()
+        
+        # Save profile
+        if self.profile_manager.save_profile(name, config, desc):
+            self.refresh_profiles()
+            # Select the saved profile
+            index = self.profile_combo.findText(name)
+            if index >= 0:
+                self.profile_combo.setCurrentIndex(index)
+            QMessageBox.information(self, "Success", f"Profile '{name}' saved successfully!")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to save profile!")
+    
+    def delete_selected_profile(self):
+        """Delete selected profile"""
+        if not self.profile_manager:
+            return
+        
+        profile_name = self.profile_combo.currentText()
+        if not profile_name:
+            return
+        
+        from PyQt6.QtWidgets import QMessageBox
+        
+        reply = QMessageBox.question(
+            self,
+            "Delete Profile",
+            f"Are you sure you want to delete profile '{profile_name}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            if self.profile_manager.delete_profile(profile_name):
+                self.refresh_profiles()
+                QMessageBox.information(self, "Success", f"Profile '{profile_name}' deleted!")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to delete profile!")
     
     def get_config(self):
         return {
@@ -1026,7 +1248,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(5000, self.check_for_updates)
     
     def setup_ui(self):
-        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.2")
+        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.3")
         self.setMinimumSize(800, 600)
         
         # Central widget
@@ -1119,7 +1341,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(company_label)
         
         # Right side - Version
-        version_label = QLabel("IBE-100 v2.0.2")
+        version_label = QLabel("IBE-100 v2.0.3")
         version_label.setStyleSheet("color: #4CAF50; font-size: 11px; font-weight: bold;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         footer_layout.addWidget(version_label)
@@ -1195,7 +1417,7 @@ class MainWindow(QMainWindow):
     def check_for_updates(self):
         """Check for available updates"""
         if self.update_checker is None:
-            self.update_checker = UpdateChecker("2.0.2")
+            self.update_checker = UpdateChecker("2.0.3")
             self.update_checker.update_available.connect(self.show_update_dialog)
             self.update_checker.check_complete.connect(self.on_update_check_complete)
         
@@ -1215,7 +1437,7 @@ class MainWindow(QMainWindow):
         msg.setWindowTitle("🔄 Update Available")
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setText(f"<b>IBE-100 Version {version} is Available!</b>")
-        msg.setInformativeText(f"Current version: 2.0.2<br>Latest version: {version}")
+        msg.setInformativeText(f"Current version: 2.0.3<br>Latest version: {version}")
         
         # Add release notes
         details = QTextEdit()
