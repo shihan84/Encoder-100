@@ -430,7 +430,61 @@ class StreamConfigWidget(QWidget):
         config = self.profile_manager.get_profile(profile_name)
         if config:
             self.apply_config(config)
+            # Update output directories based on profile name
+            self.update_output_paths_for_profile(profile_name)
             print(f"[INFO] Loaded profile: {profile_name}")
+    
+    def update_output_paths_for_profile(self, profile_name):
+        """Update output directories to include profile name"""
+        import re
+        import os
+        # Sanitize profile name for file system (remove invalid characters)
+        safe_name = re.sub(r'[<>:"/\\|?*]', '_', profile_name)
+        safe_name = safe_name.strip()
+        
+        # Update HLS output path
+        current_hls = self.output_hls.text().strip()
+        # Check if path already contains the profile name (avoid duplication)
+        if safe_name.lower() in current_hls.lower():
+            # Path already contains profile name, keep it
+            pass
+        elif current_hls.startswith("output/"):
+            # Standard output/ path - add profile folder
+            self.output_hls.setText(f"output/{safe_name}/hls")
+        elif current_hls:
+            # Custom path - add profile folder
+            base = current_hls.rstrip("/")
+            # Check if it ends with /hls or /dash and insert profile name before that
+            if current_hls.endswith("/hls"):
+                base = base[:-4]  # Remove /hls
+                self.output_hls.setText(f"{base}/{safe_name}/hls")
+            else:
+                self.output_hls.setText(f"{base}/{safe_name}/hls")
+        else:
+            self.output_hls.setText(f"output/{safe_name}/hls")
+        
+        # Update DASH output path
+        current_dash = self.output_dash.text().strip()
+        # Check if path already contains the profile name (avoid duplication)
+        if safe_name.lower() in current_dash.lower():
+            # Path already contains profile name, keep it
+            pass
+        elif current_dash.startswith("output/"):
+            # Standard output/ path - add profile folder
+            self.output_dash.setText(f"output/{safe_name}/dash")
+        elif current_dash:
+            # Custom path - add profile folder
+            base = current_dash.rstrip("/")
+            # Check if it ends with /dash and insert profile name before that
+            if current_dash.endswith("/dash"):
+                base = base[:-5]  # Remove /dash
+                self.output_dash.setText(f"{base}/{safe_name}/dash")
+            else:
+                self.output_dash.setText(f"{base}/{safe_name}/dash")
+        else:
+            self.output_dash.setText(f"output/{safe_name}/dash")
+        
+        print(f"[INFO] Updated output paths for profile: {profile_name} -> {safe_name}")
     
     def apply_config(self, config):
         """Apply configuration dictionary to UI fields"""
@@ -558,7 +612,10 @@ class StreamConfigWidget(QWidget):
             if reply != QMessageBox.StandardButton.Yes:
                 return
         
-        # Get current config
+        # Update output paths to include profile name before saving
+        self.update_output_paths_for_profile(name)
+        
+        # Get current config (with updated paths)
         config = self.get_config()
         
         # Save profile
@@ -1274,7 +1331,7 @@ class UpdateChecker(QThread):
             import json
             
             req = urllib.request.Request(self.api_url)
-            req.add_header('User-Agent', 'IBE-100/2.0.2')
+            req.add_header('User-Agent', 'IBE-100/2.0.4')
             
             with urllib.request.urlopen(req, timeout=10) as response:
                 data = json.loads(response.read())
@@ -1311,7 +1368,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(5000, self.check_for_updates)
     
     def setup_ui(self):
-        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.3")
+        self.setWindowTitle("ITAssist Broadcast Encoder - 100 (IBE-100) v2.0.4")
         self.setMinimumSize(800, 600)
         
         # Central widget
@@ -1404,7 +1461,7 @@ class MainWindow(QMainWindow):
         footer_layout.addWidget(company_label)
         
         # Right side - Version
-        version_label = QLabel("IBE-100 v2.0.3")
+        version_label = QLabel("IBE-100 v2.0.4")
         version_label.setStyleSheet("color: #4CAF50; font-size: 11px; font-weight: bold;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         footer_layout.addWidget(version_label)
@@ -1480,7 +1537,7 @@ class MainWindow(QMainWindow):
     def check_for_updates(self):
         """Check for available updates"""
         if self.update_checker is None:
-            self.update_checker = UpdateChecker("2.0.3")
+            self.update_checker = UpdateChecker("2.0.4")
             self.update_checker.update_available.connect(self.show_update_dialog)
             self.update_checker.check_complete.connect(self.on_update_check_complete)
         
@@ -1500,7 +1557,7 @@ class MainWindow(QMainWindow):
         msg.setWindowTitle("🔄 Update Available")
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setText(f"<b>IBE-100 Version {version} is Available!</b>")
-        msg.setInformativeText(f"Current version: 2.0.3<br>Latest version: {version}")
+        msg.setInformativeText(f"Current version: 2.0.4<br>Latest version: {version}")
         
         # Add release notes
         details = QTextEdit()
@@ -1754,6 +1811,30 @@ class MainWindow(QMainWindow):
         
         self.monitoring_widget.append(f"[INFO] Starting processing...")
         self.monitoring_widget.append(f"[INFO] Using marker: {marker}")
+        
+        # Create output directories if needed (for HLS/DASH)
+        config = self.config_widget.get_config()
+        output_type = config.get("output_type", "SRT")
+        
+        if output_type == "HLS":
+            output_path = config.get("output_hls", "output/hls")
+            if output_path:
+                try:
+                    import os
+                    os.makedirs(output_path, exist_ok=True)
+                    self.monitoring_widget.append(f"[INFO] Created/verified output directory: {output_path}")
+                except Exception as e:
+                    self.monitoring_widget.append(f"[WARNING] Could not create directory {output_path}: {e}")
+        
+        elif output_type == "DASH":
+            output_path = config.get("output_dash", "output/dash")
+            if output_path:
+                try:
+                    import os
+                    os.makedirs(output_path, exist_ok=True)
+                    self.monitoring_widget.append(f"[INFO] Created/verified output directory: {output_path}")
+                except Exception as e:
+                    self.monitoring_widget.append(f"[WARNING] Could not create directory {output_path}: {e}")
         
         command = self.build_command()
         cmd_str = ' '.join(command)
