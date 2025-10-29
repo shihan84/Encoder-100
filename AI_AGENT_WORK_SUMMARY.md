@@ -3,7 +3,7 @@
 ## Project Overview
 **Project**: ITAssist Broadcast Encoder - 100 (IBE-100)  
 **Version**: 2.0.2  
-**Status**: Production Ready Len  
+**Status**: Production Ready  
 **Last Updated**: January 2025
 
 ## Current Status
@@ -27,6 +27,21 @@
 - [x] Fixed XML marker format (TSDuck compatible with `<tsduck>` root)
 - [x] Fixed PID conflict handling (smart remapping - skips for SRT)
 - [x] Fixed console window visibility (hidden using `CREATE_NO_WINDOW`)
+
+#### Latest Features (v2.0.2) - January 2025
+- [x] **Auto-Update Feature** - GitHub release checking
+  - Automatic update detection on startup
+  - Update notification dialog
+  - One-click download access
+- [x] **GitHub License System** - Complete license management
+  - GitHub Gist-based license storage
+  - Trial and unlimited license support
+  - Real-time validation
+  - Session timer for trial licenses
+- [x] **Deployment Troubleshooting** - Enhanced error handling
+  - Diagnostic tools for Error Code 1
+  - System requirements checking
+  - Comprehensive troubleshooting guides
 
 #### Latest Fixes (v1.5.1) - October 2025
 - [x] **Error Code 1 Troubleshooting System** - Added comprehensive diagnostic tools
@@ -194,7 +209,7 @@ IBE-100_v2.0_CLEAN/
 ### Source Code
 - **Main Application**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\main.py`
 - **Build Config**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\build_config.py`
-- **License Manager**: `E:\NEW DOWNLOADS\Enc-无菌\Encoder-100\github_license_manager.py`
+- **License Manager**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\github_license_manager.py`
 - **Executable**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\dist\IBE-100.exe`
 - **Release Package**: `E:\NEW DOWNLOADS\Enc-100\Encoder-100\IBE-100_v2.0_CLEAN\dist_final\`
 
