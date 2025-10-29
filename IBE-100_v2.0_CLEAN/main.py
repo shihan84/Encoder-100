@@ -147,7 +147,6 @@ class StreamConfigWidget(QWidget):
         input_layout = QVBoxLayout()
         
         # Input Type Selection
-        from PyQt6.QtWidgets import QComboBox
         input_type_layout = QHBoxLayout()
         input_type_layout.addWidget(QLabel("Input Type:"))
         self.input_type = QComboBox()
@@ -301,7 +300,6 @@ class StreamConfigWidget(QWidget):
         
         # CORS Enable
         cors_layout = QHBoxLayout()
-        from PyQt6.QtWidgets import QCheckBox
         self.enable_cors = QCheckBox("Enable CORS Headers (Required for local web server)")
         self.enable_cors.setChecked(True)
         cors_layout.addWidget(self.enable_cors)
