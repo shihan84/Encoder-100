@@ -998,6 +998,32 @@ class MonitoringWidget(QWidget):
         self.web_server_path.setPlaceholderText("output/hls")
         self.web_server_path.setText("output/hls")
         
+        # HLS Link Display
+        hls_link_layout = QHBoxLayout()
+        hls_link_layout.addWidget(QLabel("📺 HLS Link:"))
+        self.hls_link = QLineEdit()
+        self.hls_link.setPlaceholderText("http://localhost:8000/stream.m3u8")
+        self.hls_link.setReadOnly(True)
+        self.hls_link.setStyleSheet("background-color: #3a3a3a; color: #4CAF50; padding: 5px; border: 1px solid #555; border-radius: 4px;")
+        hls_copy_btn = QPushButton("📋 Copy")
+        hls_copy_btn.setMaximumWidth(60)
+        hls_copy_btn.clicked.connect(lambda: self.copy_to_clipboard(self.hls_link.text()))
+        hls_link_layout.addWidget(self.hls_link, 1)
+        hls_link_layout.addWidget(hls_copy_btn)
+        
+        # DASH Link Display
+        dash_link_layout = QHBoxLayout()
+        dash_link_layout.addWidget(QLabel("📡 DASH Link:"))
+        self.dash_link = QLineEdit()
+        self.dash_link.setPlaceholderText("http://localhost:8000/stream.mpd")
+        self.dash_link.setReadOnly(True)
+        self.dash_link.setStyleSheet("background-color: #3a3a3a; color: #2196F3; padding: 5px; border: 1px solid #555; border-radius: 4px;")
+        dash_copy_btn = QPushButton("📋 Copy")
+        dash_copy_btn.setMaximumWidth(60)
+        dash_copy_btn.clicked.connect(lambda: self.copy_to_clipboard(self.dash_link.text()))
+        dash_link_layout.addWidget(self.dash_link, 1)
+        dash_link_layout.addWidget(dash_copy_btn)
+        
         from PyQt6.QtWidgets import QPushButton, QHBoxLayout
         self.start_server_btn = QPushButton("▶️ Start Web Server")
         self.start_server_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 8px; border-radius: 4px;")
@@ -1012,6 +1038,8 @@ class MonitoringWidget(QWidget):
         web_server_layout.addWidget(self.web_server_port)
         web_server_layout.addWidget(QLabel("Serving Directory:"))
         web_server_layout.addWidget(self.web_server_path)
+        web_server_layout.addLayout(hls_link_layout)
+        web_server_layout.addLayout(dash_link_layout)
         
         btn_layout = QHBoxLayout()
         btn_layout.addWidget(self.start_server_btn)
@@ -1027,6 +1055,9 @@ class MonitoringWidget(QWidget):
         # Web server instance
         self.web_server_process = None
         self.web_server_thread = None
+        
+        # Reference to main window for accessing config
+        self.main_window = None
     
     def setup_monitoring(self):
         """Setup real-time monitoring"""
@@ -1034,10 +1065,47 @@ class MonitoringWidget(QWidget):
         self.start_server_btn.clicked.connect(self.start_web_server)
         self.stop_server_btn.clicked.connect(self.stop_web_server)
         
+        # Connect web server URL changes to update links
+        self.web_server_url.textChanged.connect(self.update_stream_links)
+        self.web_server_port.valueChanged.connect(self.update_stream_links)
+        self.web_server_path.textChanged.connect(self.update_stream_links)
+        
+        # Connect copy buttons - find buttons after they're added to layout
+        # We'll connect them directly in setup_ui instead
+        
         # Timer for system metrics updates
         self.metrics_timer = QTimer()
         self.metrics_timer.timeout.connect(self.update_metrics)
         self.metrics_timer.start(1000)  # Update every second
+        
+        # Initial link update
+        self.update_stream_links()
+    
+    def copy_to_clipboard(self, text):
+        """Copy text to clipboard"""
+        from PyQt6.QtWidgets import QApplication
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+        print(f"[INFO] Copied to clipboard: {text}")
+    
+    def update_stream_links(self):
+        """Update HLS and DASH stream links based on server settings"""
+        try:
+            port = self.web_server_port.value()
+            base_url = self.web_server_url.text().strip()
+            if not base_url:
+                base_url = f"http://localhost:{port}"
+            
+            # Always show links pointing to stream.m3u8 and stream.mpd in the serving directory
+            # The actual filename will be stream.m3u8 or stream.mpd
+            hls_url = f"{base_url}/stream.m3u8"
+            dash_url = f"{base_url}/stream.mpd"
+            
+            self.hls_link.setText(hls_url)
+            self.dash_link.setText(dash_url)
+            
+        except Exception as e:
+            print(f"[WARNING] Error updating stream links: {e}")
     
     def start_web_server(self):
         """Start local web server for HLS/DASH content"""
