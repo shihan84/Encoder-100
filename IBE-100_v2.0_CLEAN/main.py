@@ -1024,7 +1024,7 @@ class MonitoringWidget(QWidget):
         dash_link_layout.addWidget(self.dash_link, 1)
         dash_link_layout.addWidget(dash_copy_btn)
         
-        from PyQt6.QtWidgets import QPushButton, QHBoxLayout
+        # QPushButton and QHBoxLayout already imported at top of file
         self.start_server_btn = QPushButton("▶️ Start Web Server")
         self.start_server_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 8px; border-radius: 4px;")
         self.stop_server_btn = QPushButton("⏹️ Stop Web Server")
