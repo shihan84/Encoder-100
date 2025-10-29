@@ -987,11 +987,16 @@ class MonitoringWidget(QWidget):
             self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
             return
         
-        # Check if directory exists
+        # Create directory if it doesn't exist
         if not os.path.exists(path):
-            self.web_server_status.setText(f"❌ Error: Directory '{path}' not found")
-            self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
-            return
+            try:
+                os.makedirs(path, exist_ok=True)
+                print(f"[INFO] Created directory: {path}")
+                self.web_server_status.setText(f"ℹ️ Directory '{path}' created. Starting server...")
+            except Exception as e:
+                self.web_server_status.setText(f"❌ Error: Cannot create directory '{path}': {str(e)}")
+                self.web_server_status.setStyleSheet("padding: 10px; border: 2px solid #f44336; border-radius: 4px; background-color: #3a3a3a;")
+                return
         
         # Start web server using embedded Python HTTP server
         # Use threading to run server in background
