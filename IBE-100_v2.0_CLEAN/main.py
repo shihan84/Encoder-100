@@ -42,6 +42,49 @@ def find_tsduck():
 TSDUCK_PATH = find_tsduck()
 print(f"[INFO] TSDuck found at: {TSDUCK_PATH}")
 
+def kill_all_tsduck_processes():
+    """Force kill all TSDuck processes running in background"""
+    import subprocess
+    import platform
+    
+    killed_count = 0
+    
+    try:
+        if platform.system() == "Windows":
+            # Kill tsp.exe processes
+            result = subprocess.run(
+                ["taskkill", "/F", "/IM", "tsp.exe"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+            )
+            
+            # Count processes killed
+            if "SUCCESS" in result.stdout or "terminated" in result.stdout.lower():
+                # Parse output to count
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if "terminated" in line.lower():
+                        killed_count += 1
+            
+            # Also try PowerShell method as backup
+            try:
+                ps_result = subprocess.run(
+                    ["powershell", "-Command", "Get-Process | Where-Object {$_.ProcessName -like '*tsp*'} | Stop-Process -Force"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=5,
+                    creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+                )
+            except:
+                pass
+        
+        return killed_count
+    except Exception as e:
+        print(f"[WARNING] Error killing TSDuck processes: {e}")
+        return 0
+
 class StreamConfigWidget(QWidget):
     """Stream Configuration - Input/Output Settings"""
     
@@ -1139,6 +1182,16 @@ class MainWindow(QMainWindow):
         self.preview_btn.clicked.connect(self.preview_command)
         self.scte35_widget.marker_generated.connect(self.on_marker_generated)
     
+    def kill_all_tsduck_bg_processes(self):
+        """Force kill all background TSDuck processes - utility method"""
+        self.monitoring_widget.append("[INFO] Force killing all background TSDuck processes...")
+        killed = kill_all_tsduck_processes()
+        if killed > 0:
+            self.monitoring_widget.append(f"[INFO] Successfully terminated {killed} TSDuck process(es)")
+        else:
+            self.monitoring_widget.append("[INFO] No TSDuck processes found")
+        return killed
+    
     def check_for_updates(self):
         """Check for available updates"""
         if self.update_checker is None:
@@ -1406,6 +1459,14 @@ class MainWindow(QMainWindow):
             self.monitoring_widget.append(f"[ERROR] {marker}")
             return
         
+        # Kill any existing TSDuck processes before starting
+        self.monitoring_widget.append("[INFO] Checking for existing TSDuck processes...")
+        killed = kill_all_tsduck_processes()
+        if killed > 0:
+            self.monitoring_widget.append(f"[INFO] Terminated {killed} existing TSDuck process(es)")
+        else:
+            self.monitoring_widget.append("[INFO] No existing TSDuck processes found")
+        
         self.monitoring_widget.append(f"[INFO] Starting processing...")
         self.monitoring_widget.append(f"[INFO] Using marker: {marker}")
         
@@ -1517,6 +1578,12 @@ class MainWindow(QMainWindow):
                     pass
             finally:
                 self.processor = None
+        
+        # Kill all TSDuck processes to ensure clean shutdown
+        self.monitoring_widget.append("[INFO] Force killing all TSDuck processes...")
+        killed = kill_all_tsduck_processes()
+        if killed > 0:
+            self.monitoring_widget.append(f"[INFO] Terminated {killed} TSDuck process(es)")
         
         # Reset retry count
         self.retry_count = 0
